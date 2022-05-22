@@ -7,4 +7,6 @@ from wekan.card import *
 from wekan.swimlane import *
 from wekan.user import *
 from wekan.card_checklist import *
-from wekan.card_checklist_item import CardChecklistItem
+from wekan.card_checklist_item import *
+from wekan.card_comment import *
+
