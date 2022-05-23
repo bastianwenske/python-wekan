@@ -1,20 +1,15 @@
 from __future__ import annotations
+
 from wekan.base import WekanBase
 
 
 class Swimlane(WekanBase):
-    def __init__(self, parent_board, swimlane_id: int) -> None:
+    def __init__(self, parent_board, swimlane_id: str) -> None:
         """ Reference to a Wekan Swimlane """
         super().__init__()
         self.board = parent_board
         self.id = swimlane_id
-        self.__fetch_all_attributes()
 
-    def __fetch_all_attributes(self) -> None:
-        """
-        Fetch and set all instance attributes.
-        :return: None
-        """
         data = self.board.client.fetch_json(f'/api/boards/{self.board.id}/swimlanes/{self.id}')
         self.title = data['title']
         self.archived = data['archived']

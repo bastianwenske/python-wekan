@@ -1,22 +1,19 @@
 from __future__ import annotations
+
+import re
+
 from wekan.base import WekanBase
 from wekan.card_checklist import CardChecklist
 from wekan.card_comment import CardComment
 
 
 class Card(WekanBase):
-    def __init__(self, parent_list, card_id) -> None:
+    def __init__(self, parent_list, card_id: str) -> None:
         """ Reference to a Wekan Card """
         super().__init__()
         self.list = parent_list
         self.id = card_id
-        self.__fetch_all_attributes()
 
-    def __fetch_all_attributes(self) -> None:
-        """
-        Fetch and set all instance attributes.
-        :return: None
-        """
         uri = f'/api/boards/{self.list.board.id}/lists/{self.list.id}/cards/{self.id}'
         data = self.list.board.client.fetch_json(uri)
         self.title = data['title']
@@ -45,8 +42,6 @@ class Card(WekanBase):
         self.target_id_gantt = data['targetId_gantt']
         self.link_type_gantt = data['linkType_gantt']
         self.link_id_gantt = data['linkId_gantt']
-        self.checklists = CardChecklist.from_list(parent_card=self, data=self.get_all_checklists())
-        self.comments = CardComment.from_list(parent_card=self, data=self.get_all_comments())
 
     def __repr__(self) -> str:
         return f"<Card (id: {self.id}, title: {self.title})>"
@@ -74,19 +69,40 @@ class Card(WekanBase):
             instances.append(cls(parent_list=parent_list, card_id=card['_id']))
         return instances
 
-    def get_all_checklists(self) -> list:
+    def __get_all_checklists(self) -> list:
         """
         Get all Checklists by calling the API according to https://wekan.github.io/api/v2.55/#get_all_checklists
         :return: All Checklists
         """
         return self.list.board.client.fetch_json(f'/api/boards/{self.list.board.id}/cards/{self.id}/checklists')
 
-    def get_all_comments(self) -> list:
+    def list_checklists(self, regex_filter='.*') -> list:
+        """
+        List all (matching) checklists
+        :param regex_filter: Regex filter that will be applied to the search.
+        :return: list of checklists
+        """
+        all_checklists = CardChecklist.from_list(parent_card=self, data=self.__get_all_checklists())
+        return [checklist for checklist in all_checklists if re.search(regex_filter, checklist.title)]
+
+    def __get_all_comments(self) -> list:
         """
         Get all Comments by calling the API according to https://wekan.github.io/api/v2.55/#get_all_comments
         :return: All Checklists
         """
         return self.list.board.client.fetch_json(f'/api/boards/{self.list.board.id}/cards/{self.id}/comments')
+
+    def list_comments(self, author_id=None) -> list:
+        """
+        List all (matching) checklists
+        :param author_id: author_id filter that will be applied to the search.
+        :return: list of checklists
+        """
+        all_comments = CardComment.from_list(parent_card=self, data=self.__get_all_comments())
+        if author_id:
+            return [comment for comment in all_comments if author_id == comment.author_id]
+        else:
+            return all_comments
 
     def edit(self, data: dict) -> None:
         """
@@ -98,7 +114,6 @@ class Card(WekanBase):
         """
         uri = f'/api/boards/{self.list.board.id}/lists/{self.list.id}/cards/{self.id}'
         self.list.board.client.fetch_json(uri, payload=data, http_method="PUT")
-        self.__fetch_all_attributes()
 
     def delete(self) -> None:
         """
@@ -119,9 +134,7 @@ class Card(WekanBase):
         }
         response = self.list.board.client.fetch_json(uri_path=f'/api/boards/{self.id}/cards/{self.id}/checklists',
                                                      http_method="POST", payload=payload)
-        instance = CardChecklist.from_dict(parent_card=self, data=response)
-        self.checklists.append(instance)
-        return instance
+        return CardChecklist.from_dict(parent_card=self, data=response)
 
     def add_comment(self, comment: str) -> CardComment:
         """
@@ -135,6 +148,4 @@ class Card(WekanBase):
         }
         uri = f'/api/boards/{self.list.board.id}/cards/{self.id}/comments'
         response = self.list.board.client.fetch_json(uri, http_method="POST", payload=payload)
-        instance = CardComment.from_dict(parent_card=self, data=response)
-        self.comments.append(instance)
-        return instance
+        return CardComment.from_dict(parent_card=self, data=response)

@@ -1,21 +1,16 @@
 from __future__ import annotations
+
 from wekan.base import WekanBase
 
 
 class User(WekanBase):
-    def __init__(self, client, user_id: int, username: str) -> None:
+    def __init__(self, client, user_id: str, username: str) -> None:
         """ Reference to a Wekan User """
         super().__init__()
         self.id = user_id
         self.username = username
         self.client = client
-        self.__fetch_all_attributes()
 
-    def __fetch_all_attributes(self) -> None:
-        """
-        Fetch and set all instance attributes.
-        :return: None
-        """
         data = self.client.fetch_json(f'/api/users/{self.id}')
         self.username = data['username']
         self.created_at = self.client.parse_iso_date(data['createdAt'])
@@ -75,4 +70,3 @@ class User(WekanBase):
         allowed_actions = ["takeOwnership", "disableLogin", "enableLogin"]
         assert action in allowed_actions, f"action not in {allowed_actions}"
         self.client.fetch_json(f'/api/user/{self.id}', payload={"action": action}, http_method="PUT")
-        self.__fetch_all_attributes()

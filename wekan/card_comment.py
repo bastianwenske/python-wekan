@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from wekan.base import WekanBase
 
 
@@ -8,13 +9,7 @@ class CardComment(WekanBase):
         super().__init__()
         self.card = parent_card
         self.id = comment_id
-        self.__fetch_all_attributes()
 
-    def __fetch_all_attributes(self) -> None:
-        """
-        Fetch and set all instance attributes according to https://wekan.github.io/api/v2.55/#get_comment
-        :return: None
-        """
         uri = f'/api/boards/{self.card.list.board.id}/cards/{self.card.id}/comments/{self.id}'
         data = self.card.list.board.client.fetch_json(uri)
         self.text = data['text']
@@ -45,13 +40,14 @@ class CardComment(WekanBase):
         """
         instances = []
         for comment in data:
-            instances.append(cls(parent_card=parent_card,  comment_id=comment['_id']))
+            instances.append(cls(parent_card=parent_card, comment_id=comment['_id']))
         return instances
 
     def edit(self, data: dict) -> None:
         """
         Edit the current instance by sending a PUT Request to the API.
-        Currently, this is not supported by API. See also: https://wekan.github.io/api/v2.55/#wekan-rest-api-cardcomments
+        Currently, this is not supported by API.
+        See also: https://wekan.github.io/api/v2.55/#wekan-rest-api-cardcomments
         """
         raise NotImplementedError
 

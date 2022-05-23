@@ -1,7 +1,11 @@
 import json
-from datetime import datetime, timezone
+import re
+from datetime import datetime
+from datetime import timezone
+
 import requests
 from dateutil import parser
+
 from wekan.board import Board
 from wekan.user import User
 
@@ -12,9 +16,46 @@ class WekanClient(object):
         self.username = username
         self.password = password
         self.__renew_login_data()
-        self.users = User.from_list(client=self, data=self.get_all_users())
-        self.boards = Board.from_list(self, data=self.get_boards())
-        self.public_boards = Board.from_list(self, data=self.get_public_boards())
+
+    def __get_public_boards(self) -> dict:
+        """
+        Returns all public boards.
+        :return: a list of Python objects representing the Wekan boards.
+        """
+        return self.fetch_json(uri_path=f'/api/boards')
+
+    def __get_boards(self) -> dict:
+        """
+        Returns all boards for your Wekan user.
+        :return: a list of Python objects representing the Wekan boards.
+        """
+        return self.fetch_json(uri_path=f'/api/users/{self.user_id}/boards')
+
+    def list_boards(self, regex_filter='.*') -> list:
+        """
+        List all (matching) boards
+        :return: list of boards
+        """
+        public_boards = Board.from_list(self, data=self.__get_public_boards())
+        private_boards = Board.from_list(self, data=self.__get_boards())
+        all_boards = public_boards + private_boards
+        return [board for board in all_boards if re.search(regex_filter, board.title)]
+
+    def __get_all_users(self) -> list:
+        """
+        Get all users by calling the API according to https://wekan.github.io/api/v2.55/#get_all_users
+        IMPORTANT: Only the admin user (the first user) can call this REST API Endpoint.
+        :return: List of instances of class User
+        """
+        return self.fetch_json(f'/api/users')
+
+    def list_users(self, regex_filter='.*') -> list:
+        """
+        List all (matching) users
+        :return: list of users
+        """
+        all_users = User.from_list(client=self, data=self.__get_all_users())
+        return [user for user in all_users if re.search(regex_filter, user.username)]
 
     def __renew_login_data(self):
         """
@@ -35,14 +76,6 @@ class WekanClient(object):
                                    http_method='POST',
                                    payload=credentials)
         return json_obj['id'], json_obj['token'], json_obj['tokenExpires']
-
-    def get_all_users(self) -> list:
-        """
-        Get all users by calling the API according to https://wekan.github.io/api/v2.55/#get_all_users
-        IMPORTANT: Only the admin user (the first user) can call this REST API Endpoint.
-        :return: List of instances of class User
-        """
-        return self.fetch_json(f'/api/users')
 
     @staticmethod
     def parse_iso_date(date: datetime.date) -> datetime.date:
@@ -94,35 +127,6 @@ class WekanClient(object):
 
         return response.json()
 
-    def get_public_boards(self) -> dict:
-        """
-        Returns all public boards.
-
-        :return: a list of Python objects representing the Wekan boards.
-        :rtype: list of Board
-
-        Each board has the following noteworthy attributes:
-            TODO
-        """
-        return self.fetch_json(uri_path=f'/api/boards')
-
-    def get_boards(self) -> dict:
-        """
-        Returns all boards for your Wekan user.
-        :return: a list of Python objects representing the Wekan boards.
-        :rtype: list of Board
-        """
-        return self.fetch_json(uri_path=f'/api/users/{self.user_id}/boards')
-
-    def get_board_by_title(self, title) -> Board:
-        """
-        Get board by title.
-        :return: Instance of Swimlane
-        """
-        for board in self.boards:
-            if title == board.title:
-                return board
-
     def add_board(self, title: str, color: str, owner=None,
                   is_admin=True, is_active=True, is_no_comments=False,
                   is_comment_only=False, permission='private') -> Board:
@@ -150,9 +154,7 @@ class WekanClient(object):
             'color': color
         }
         response = self.fetch_json(uri_path='/api/boards', http_method="POST", payload=payload)
-        instance = Board.from_dict(client=self, data=response)
-        self.boards.append(instance)
-        return instance
+        return Board.from_dict(client=self, data=response)
 
     def add_user(self, username: str, email: str, password: str) -> User:
         """
@@ -168,6 +170,4 @@ class WekanClient(object):
             'password': password
         }
         response = self.fetch_json(uri_path='/api/users', http_method="POST", payload=payload)
-        instance = User.from_dict(client=self, data=response)
-        self.users.append(instance)
-        return instance
+        return User.from_dict(client=self, data=response)

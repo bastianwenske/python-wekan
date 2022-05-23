@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from wekan.base import WekanBase
 from wekan.card_checklist_item import CardChecklistItem
 
@@ -9,20 +10,20 @@ class CardChecklist(WekanBase):
         super().__init__()
         self.card = parent_card
         self.id = checklist_id
-        self.__fetch_all_attributes()
 
-    def __fetch_all_attributes(self) -> None:
-        """
-        Fetch and set all instance attributes.
-        :return: None
-        """
         uri = f'/api/boards/{self.card.list.board.id}/cards/{self.card.id}/checklists/{self.id}'
-        data = self.card.list.board.client.fetch_json(uri)
-        self.title = data['title']
-        self.sort = data['sort']
-        self.createdAt = self.card.list.board.client.parse_iso_date(data['createdAt'])
-        self.modified_at = self.card.list.board.client.parse_iso_date(data['modifiedAt'])
-        self.items = CardChecklistItem.from_list(parent_checklist=self, data=data['items'])
+        self.__raw_data = self.card.list.board.client.fetch_json(uri)
+        self.title = self.__raw_data['title']
+        self.sort = self.__raw_data['sort']
+        self.createdAt = self.card.list.board.client.parse_iso_date(self.__raw_data['createdAt'])
+        self.modified_at = self.card.list.board.client.parse_iso_date(self.__raw_data['modifiedAt'])
+
+    def list_checklists(self) -> list:
+        """
+        List all checklist items
+        :return: list of checklist items
+        """
+        return CardChecklistItem.from_list(parent_checklist=self, data=self.__raw_data['items'])
 
     def __repr__(self) -> str:
         return f"<CardChecklist (id: {self.id}, title: {self.title})>"
@@ -62,5 +63,5 @@ class CardChecklist(WekanBase):
         Delete the Card Checklist instance according to https://wekan.github.io/api/v2.55/#delete_checklist
         :return: None
         """
-        uri = f'/api/boards/{self.board.id}/cards/{self.card.id}/checklists/{self.id}'
+        uri = f'/api/boards/{self.card.list.board.id}/cards/{self.card.id}/checklists/{self.id}'
         self.card.list.board.client.fetch_json(uri, http_method="DELETE")

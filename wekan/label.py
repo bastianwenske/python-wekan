@@ -1,9 +1,10 @@
 from __future__ import annotations
+
 from wekan.base import WekanBase
 
 
 class Label(WekanBase):
-    def __init__(self, parent_board, label_id, name, color="") -> None:
+    def __init__(self, parent_board, label_id: str, name: str, color="") -> None:
         """ Reference to a Wekan Label """
         super().__init__()
         self.board = parent_board

@@ -1,20 +1,15 @@
 from __future__ import annotations
+
 from wekan.base import WekanBase
 
 
 class Customfield(WekanBase):
-    def __init__(self, parent_board, custom_field_id) -> None:
+    def __init__(self, parent_board, custom_field_id: str) -> None:
         """ Reference to a Customfield within a Wekan Board """
         super().__init__()
         self.board = parent_board
         self.id = custom_field_id
-        self.__fetch_all_attributes()
 
-    def __fetch_all_attributes(self) -> None:
-        """
-        Fetch and set all instance attributes.
-        :return: None
-        """
         data = self.board.client.fetch_json(f'/api/boards/{self.board.id}/custom-fields/{self.id}')
         self.name = data['name']
         self.type = data['type']
@@ -65,7 +60,5 @@ class Customfield(WekanBase):
         :param data: Changed fields as dict object. Example: {'title': 'changed title'}
         :return: API Response as type dict containing the id of the changed CustomField
         """
-        response = self.board.client.fetch_json(f'/api/boards/{self.board.id}/custom-fields/{self.id}',
-                                                payload=data, http_method="PUT")
-        self.__fetch_all_attributes()
-        return response
+        return self.board.client.fetch_json(f'/api/boards/{self.board.id}/custom-fields/{self.id}',
+                                            payload=data, http_method="PUT")

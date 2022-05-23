@@ -1,4 +1,5 @@
 from __future__ import annotations
+
 from wekan.base import WekanBase
 
 
@@ -10,19 +11,11 @@ class CardChecklistItem(WekanBase):
         self.id = item_id
         self.title = title
         self.is_finished = is_finished
-        self.__fetch_all_attributes()
 
-    def __fetch_all_attributes(self) -> None:
-        """
-        Fetch and set all instance attributes.
-        :return: None
-        """
         uri = f'/api/boards/{self.checklist.card.list.board.id}/cards/{self.checklist.card.id}/' \
               f'checklists/{self.checklist.id}/items/{self.id}'
         data = self.checklist.card.list.board.client.fetch_json(uri)
-        self.title = data['title']
         self.sort = data['sort']
-        self.user_id = data['isFinished']
 
     def __repr__(self) -> str:
         return f"<CardChecklistItem (id: {self.id}, title: {self.title}, is_finished: {self.is_finished})>"
@@ -70,7 +63,6 @@ class CardChecklistItem(WekanBase):
         uri = f'/api/boards/{self.checklist.card.list.board.id}/cards/{self.checklist.card.id}/' \
               f'checklists/{self.checklist.id}/items/{self.id}'
         self.checklist.card.list.board.client.fetch_json(uri, payload=payload, http_method="PUT")
-        self.__fetch_all_attributes()
 
     def mark_as_finished(self) -> None:
         """

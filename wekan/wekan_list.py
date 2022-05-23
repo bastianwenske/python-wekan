@@ -1,23 +1,19 @@
 from __future__ import annotations
+
+import re
+
 from wekan.base import WekanBase
 from wekan.card import Card
 from wekan.swimlane import Swimlane
 
 
 class List(WekanBase):
-    def __init__(self, parent_board, list_id: int) -> None:
+    def __init__(self, parent_board, list_id: str) -> None:
         """ Reference to a Wekan List. """
         super().__init__()
         self.board = parent_board
         self.id = list_id
-        self.__fetch_all_attributes()
-        self.cards = Card.from_list(parent_list=self, data=self.get_all_cards_on_list())
 
-    def __fetch_all_attributes(self) -> None:
-        """
-        Fetch and set all instance attributes.
-        :return: None
-        """
         data = self.board.client.fetch_json(f'/api/boards/{self.board.id}/lists/{self.id}')
         self.title = data['title']
         self.archived = data['archived']
@@ -27,18 +23,28 @@ class List(WekanBase):
         self.sort = data['sort']
         self.wip_limit = data['wipLimit']
         self.color = data.get('color', '')
+
         data_cc = self.board.client.fetch_json(f'/api/boards/{self.board.id}/lists/{self.id}/cards_count')
         self.cards_count = data_cc['list_cards_count']
 
     def __repr__(self) -> str:
         return f"<List (id: {self.id}, title: {self.title})>"
 
-    def get_all_cards_on_list(self) -> list:
+    def __get_all_cards_on_list(self) -> list:
         """
         Get all cards by calling the API according to https://wekan.github.io/api/v2.55/#get_list
         :return: All cards
         """
         return self.board.client.fetch_json(f'/api/boards/{self.board.id}/lists/{self.id}/cards')
+
+    def list_cards(self, regex_filter='.*') -> list:
+        """
+        List all (matching) cards
+        :param regex_filter: Regex filter that will be applied to the search.
+        :return: list of cards
+        """
+        all_cards = Card.from_list(parent_list=self, data=self.__get_all_cards_on_list())
+        return [card for card in all_cards if re.search(regex_filter, card.title)]
 
     @classmethod
     def from_dict(cls, parent_board, data: dict) -> List:
@@ -89,6 +95,4 @@ class List(WekanBase):
         }
         response = self.board.client.fetch_json(uri_path=f'/api/boards/{self.board.id}/lists/{self.id}/cards',
                                                 http_method="POST", payload=payload)
-        instance = Card.from_dict(parent_board=self.board, parent_list=self, data=response)
-        self.cards.append(instance)
-        return instance
+        return Card.from_dict(parent_list=self, data=response)
