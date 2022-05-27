@@ -1,5 +1,6 @@
 from datetime import datetime
 from datetime import date
+import requests
 import os
 
 from wekan import WekanClient
@@ -17,8 +18,8 @@ import random
 
 
 fake = Faker()
-global wekan_id_length
 wekan_id_length = 17
+wekan_base_url = "http://localhost:8080"
 
 
 def test_parse_iso_date():
@@ -27,10 +28,20 @@ def test_parse_iso_date():
 
 
 def test_wekan_client():
+    username = fake.name()
+    password = fake.password(length=12)
+    payload = {
+        "username": username,
+        "password": password,
+        "email": fake.email()
+    }
+    res = requests.post(url=f"{wekan_base_url}/users/register", data=payload)
+    assert res.status_code == 200
+
     global api  # this is global for being able to use the client in other tests
-    api = WekanClient(base_url='http://localhost:8080',
-                      username=os.getenv('WEKAN_USERNAME'),
-                      password=os.getenv('WEKAN_PASSWORD'))
+    api = WekanClient(base_url=wekan_base_url,
+                      username=username,
+                      password=password)
     assert len(api.token) == 43
     assert len(api.user_id) == wekan_id_length
     assert isinstance(api, WekanClient)

@@ -138,6 +138,7 @@ board.add_swimlane(title="My first swimlane")
 ### Generate requirements
 ```bash
 pipenv requirements > requirements.txt
+pipenv requirements --dev-only > requirements_dev.txt
  ```
 
 ## credits
