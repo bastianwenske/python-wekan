@@ -10,7 +10,7 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: password
       MONGO_INITDB_DATABASE: auth
   wekan:
-    image: quay.io/wekan/wekan:latest
+    image: quay.io/wekan/wekan:v6.26
     container_name: wekan-app
     restart: always
     ports:
