@@ -134,6 +134,12 @@ board = wekan.list_boards(regex_filter='My new Board')[0]
 board.add_swimlane(title="My first swimlane")
 ```
 
+## Development
+### Generate requirements
+```bash
+pipenv requirements > requirements.txt
+ ```
+
 ## credits
 This project is build on base of [py-trello](https://github.com/sarumont/py-trello).
 Some methods and design structures were adopted 1:1.
