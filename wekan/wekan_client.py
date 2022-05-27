@@ -32,7 +32,7 @@ class WekanClient(object):
         Returns all public boards.
         :return: a list of Python objects representing the Wekan boards.
         """
-        return self.fetch_json(uri_path=f'/api/boards')
+        return self.fetch_json(uri_path='/api/boards')
 
     def __get_boards(self) -> dict:
         """
@@ -57,7 +57,7 @@ class WekanClient(object):
         IMPORTANT: Only the admin user (the first user) can call this REST API Endpoint.
         :return: List of instances of class User
         """
-        return self.fetch_json(f'/api/users')
+        return self.fetch_json('/api/users')
 
     def list_users(self, regex_filter='.*') -> list:
         """
