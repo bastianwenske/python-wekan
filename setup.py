@@ -2,10 +2,10 @@ from distutils.core import setup
 
 setup(
     name='python-wekan',
-    version='0.1.2',
+    version='0.1.3',
     packages=['tests', 'wekan'],
     url='https://github.com/bastianwenske/python-wekan',
-    download_url='https://github.com/sarumont/py-trello',
+    download_url='https://github.com/bastianwenske/python-wekan',
     license='Apache License 2.0',
     author='Bastian Wenske',
     author_email='',
