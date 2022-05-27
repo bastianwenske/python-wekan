@@ -1,5 +1,6 @@
 from datetime import datetime
 from datetime import date
+import os
 
 from wekan import WekanClient
 from wekan import Board
@@ -27,9 +28,9 @@ def test_parse_iso_date():
 
 def test_wekan_client():
     global api  # this is global for being able to use the client in other tests
-    api = WekanClient(base_url="http://localhost:8080",
-                      username="admin123",
-                      password="admin123")
+    api = WekanClient(base_url='http://localhost:8080',
+                      username=os.getenv('WEKAN_USERNAME'),
+                      password=os.getenv('WEKAN_PASSWORD'))
     assert len(api.token) == 43
     assert len(api.user_id) == wekan_id_length
     assert isinstance(api, WekanClient)
