@@ -1,7 +1,6 @@
 from datetime import datetime
 from datetime import date
 import requests
-import os
 
 from wekan import WekanClient
 from wekan import Board
