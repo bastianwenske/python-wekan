@@ -1,3 +1,5 @@
+![GitHub CI](https://github.com/bastianwenske/python-wekan/actions/workflows/ci.yml/badge.svg)
+
 # python-wekan
 This is a python client for interacting with the [WeKan®](https://github.com/wekan/wekan) REST-API.
 Each WeKan object is represented by a corresponding python object.
