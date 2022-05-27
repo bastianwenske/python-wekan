@@ -39,6 +39,7 @@ jobs:
       run: docker-compose -f docker-compose.yml up -d
     - name: Test with pytest
       run: |
+        while true ; do if curl -s --fail http://localhost:8080 >> /dev/null ; then break ; else sleep 1 ; fi ; done
         pytest
     - name: Stop containers
       if: always()
