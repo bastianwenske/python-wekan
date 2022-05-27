@@ -15,7 +15,7 @@ class Swimlane(WekanBase):
         self.archived = data['archived']
         self.created_at = self.board.client.parse_iso_date(data['createdAt'])
         self.updated_at = self.board.client.parse_iso_date(data['updatedAt'])
-        self.sort = data['sort']
+        self.sort = data.get('sort')
         self.color = data.get('color', '')
         self.type = data['type']
 
@@ -47,7 +47,7 @@ class Swimlane(WekanBase):
 
     def delete(self) -> None:
         """
-        Delete the Swimlane instance according to https://wekan.github.io/api/v2.55/#get_swimlane
+        Delete the Swimlane instance according to https://wekan.github.io/api/v6.26/#get_swimlane
         :return: None
         """
         self.board.client.fetch_json(f'/api/boards/{self.board.id}/swimlanes/{self.id}', http_method="DELETE")

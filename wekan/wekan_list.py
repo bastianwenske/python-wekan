@@ -32,7 +32,7 @@ class List(WekanBase):
 
     def __get_all_cards_on_list(self) -> list:
         """
-        Get all cards by calling the API according to https://wekan.github.io/api/v2.55/#get_list
+        Get all cards by calling the API according to https://wekan.github.io/api/v6.26/#get_list
         :return: All cards
         """
         return self.board.client.fetch_json(f'/api/boards/{self.board.id}/lists/{self.id}/cards')
@@ -45,6 +45,15 @@ class List(WekanBase):
         """
         all_cards = Card.from_list(parent_list=self, data=self.__get_all_cards_on_list())
         return [card for card in all_cards if re.search(regex_filter, card.title)]
+
+    def get_card_by_id(self, card_id: str) -> Card:
+        """
+        Get a single Card by id
+        :param card_id: id of the card to fetch data from
+        :return: Instance of type Card
+        """
+        response = self.board.client.fetch_json(f'/api/boards/{self.board.id}/lists/{self.id}/cards/{card_id}')
+        return Card.from_dict(parent_list=self, data=response)
 
     @classmethod
     def from_dict(cls, parent_board, data: dict) -> List:
@@ -77,15 +86,17 @@ class List(WekanBase):
         self.board.client.fetch_json(f'/api/boards/{self.board.id}/lists/{self.id}',
                                      http_method="DELETE")
 
-    def add_card(self, title: str, swimlane: Swimlane, members="", description="") -> Card:
+    def add_card(self, title: str, swimlane: Swimlane, description: str = "", members=None) -> Card:
         """
-        Creates a new card instance according to https://wekan.github.io/api/v2.55/#new_card
+        Creates a new card instance according to https://wekan.github.io/api/v6.26/#new_card
         :param title: Title of the new card.
         :param swimlane: Swimlane ID of the new card.
         :param members: Members of the new card.
         :param description: Description of the new card.
         :return: Instance of type Card
         """
+        if members is None:
+            members = []
         payload = {
             'title': title,
             'authorId': self.board.client.user_id,

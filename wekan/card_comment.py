@@ -47,13 +47,13 @@ class CardComment(WekanBase):
         """
         Edit the current instance by sending a PUT Request to the API.
         Currently, this is not supported by API.
-        See also: https://wekan.github.io/api/v2.55/#wekan-rest-api-cardcomments
+        See also: https://wekan.github.io/api/v6.26/#wekan-rest-api-cardcomments
         """
         raise NotImplementedError
 
     def delete(self) -> None:
         """
-        Delete the CardComment instance according to https://wekan.github.io/api/v2.55/#delete_comment
+        Delete the CardComment instance according to https://wekan.github.io/api/v6.26/#delete_comment
         :return: None
         """
         uri = f'/api/boards/{self.card.list.board.id}/cards/{self.card.id}/comments/{self.id}'

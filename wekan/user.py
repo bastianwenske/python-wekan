@@ -4,11 +4,10 @@ from wekan.base import WekanBase
 
 
 class User(WekanBase):
-    def __init__(self, client, user_id: str, username: str) -> None:
+    def __init__(self, client, user_id: str) -> None:
         """ Reference to a Wekan User """
         super().__init__()
         self.id = user_id
-        self.username = username
         self.client = client
 
         data = self.client.fetch_json(f'/api/users/{self.id}')
@@ -37,7 +36,7 @@ class User(WekanBase):
         :param data: Response of User GET.
         :return: Instance of class User
         """
-        return cls(client=client, user_id=data['_id'], username=data['username'])
+        return cls(client=client, user_id=data['_id'])
 
     @classmethod
     def from_list(cls, client, data: list) -> list:
@@ -49,22 +48,21 @@ class User(WekanBase):
         """
         instances = []
         for user in data:
-            instances.append(cls(client=client, user_id=user['_id'], username=user['username']))
+            instances.append(cls(client=client, user_id=user['_id']))
         return instances
 
     def delete(self) -> None:
         """
-        Delete the User instance according to https://wekan.github.io/api/v2.55/delete_user
+        Delete the User instance according to https://wekan.github.io/api/v6.26/delete_user
         :return: None
         """
-        self.client.client.fetch_json(f'/api/users/{self.id}', http_method="DELETE")
+        self.client.fetch_json(f'/api/users/{self.id}', http_method="DELETE")
 
     def edit(self, action: str) -> None:
         """
         Edit the current instance by sending a PUT Request to the API
-        according to https://wekan.github.io/api/v2.55/#edit_user.
-        Then re-fetch all instance attributes.
-        :param action: Type of field. See also allowed_actions.
+        according to https://wekan.github.io/api/v6.26/#edit_user.
+        :param action: Type of action. See also allowed_actions.
         :return: None
         """
         allowed_actions = ["takeOwnership", "disableLogin", "enableLogin"]

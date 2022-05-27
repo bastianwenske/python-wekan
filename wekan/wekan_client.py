@@ -10,12 +10,22 @@ from wekan.board import Board
 from wekan.user import User
 
 
+class UsernameAlreadyExists(Exception):
+    pass
+
+
 class WekanClient(object):
     def __init__(self, base_url: str, username: str, password: str) -> None:
         self.base_url = base_url
         self.username = username
         self.password = password
         self.__renew_login_data()
+
+    def __renew_login_data(self):
+        """
+        Set the variables we need for login. Generating the token before.
+        """
+        self.user_id, self.token, self.token_expire_date = self.__get_api_token()
 
     def __get_public_boards(self) -> dict:
         """
@@ -43,7 +53,7 @@ class WekanClient(object):
 
     def __get_all_users(self) -> list:
         """
-        Get all users by calling the API according to https://wekan.github.io/api/v2.55/#get_all_users
+        Get all users by calling the API according to https://wekan.github.io/api/v6.26/#get_all_users
         IMPORTANT: Only the admin user (the first user) can call this REST API Endpoint.
         :return: List of instances of class User
         """
@@ -56,12 +66,6 @@ class WekanClient(object):
         """
         all_users = User.from_list(client=self, data=self.__get_all_users())
         return [user for user in all_users if re.search(regex_filter, user.username)]
-
-    def __renew_login_data(self):
-        """
-        Set the variables we need for login. Generating the token before.
-        """
-        self.user_id, self.token, self.token_expire_date = self.__get_api_token()
 
     def __get_api_token(self):
         """
@@ -78,9 +82,9 @@ class WekanClient(object):
         return json_obj['id'], json_obj['token'], json_obj['tokenExpires']
 
     @staticmethod
-    def parse_iso_date(date: datetime.date) -> datetime.date:
+    def parse_iso_date(date: str) -> datetime.date:
         """
-        Read in a datetime.date object for converting it to ISO format.
+        Read in a string object for converting it to ISO format.
         :param date: date object in non iso format
         :return: date in parsed iso format
         """
@@ -116,14 +120,21 @@ class WekanClient(object):
             # pass if the variable self.token_expire_date isn't defined
             pass
 
+        response = requests.request(method=http_method, url=url, headers=headers, data=json.dumps(payload))
         try:
-            response = requests.request(method=http_method,
-                                        url=url, headers=headers,
-                                        data=json.dumps(payload))
-            if response.status_code not in (200, 201) or 'error' in response.json():
-                raise Exception(f'Error while talking to API. Please see HTTP-Response: \n {response.text}')
+            if response.status_code not in (200, 201):
+                if "Username already exists" in response.json()['reason']:
+                    raise UsernameAlreadyExists
+                else:
+                    raise Exception(f'Error while talking to API. Please see HTTP-Response: \n {response.text}')
         except requests.exceptions.JSONDecodeError:
-            raise Exception('Could not decode the API response.')
+            if response.status_code == 500 and http_method == "DELETE":
+                # There are errors when deleting some resources via api e.g.
+                # delete cards responds with "Internal Server Error" and
+                # status 500 even if the card has been deleted successfully
+                return response.text
+            else:
+                raise Exception(f'Could not decode the API response. Please see HTTP-Response: \n {response.text}')
 
         return response.json()
 
@@ -131,7 +142,7 @@ class WekanClient(object):
                   is_admin=True, is_active=True, is_no_comments=False,
                   is_comment_only=False, permission='private') -> Board:
         """
-        Creates a new board according to https://wekan.github.io/api/v2.55/#new_board
+        Creates a new board according to https://wekan.github.io/api/v6.26/#new_board
         :param title: Title of the board.
         :param color: Color of the board.
         :param owner: Owner (ID) of the board.
@@ -158,7 +169,7 @@ class WekanClient(object):
 
     def add_user(self, username: str, email: str, password: str) -> User:
         """
-        Creates a new board according to https://wekan.github.io/api/v2.55/#new_user
+        Creates a new board according to https://wekan.github.io/api/v6.26/#new_user
         :param username: Username of the new user.
         :param email: E-Mail of the new user.
         :param password: Passwort of the new user.

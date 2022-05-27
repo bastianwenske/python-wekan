@@ -10,7 +10,7 @@ class Integration(WekanBase):
         self.board = parent_board
         self.id = integration_id
         data = self.board.client.fetch_json(f'/api/boards/{self.board.id}/integrations/{self.id}')
-        self.title = data['title']
+        self.title = data.get('title', '')
         self.url = data['url']
         self.enabled = data['enabled']
         self.user_id = data['userId']
@@ -46,24 +46,27 @@ class Integration(WekanBase):
 
     def delete(self) -> None:
         """
-        Delete the Integration instance.
+        Delete the Integration instance according to https://wekan.github.io/api/v6.26/#delete_integration
         :return: None
         """
         self.board.client.fetch_json(f'/api/boards/{self.board.id}/integrations/{self.id}', http_method="DELETE")
 
-    def delete_activities(self) -> None:
+    def delete_activities(self, activities: list) -> None:
         """
-        Delete all subscribed activities
+        Delete all subscribed activities according to https://wekan.github.io/api/v6.26/#delete_integration_activities
         :return: None
         """
+        payload = {
+            "activities": activities
+        }
         self.board.client.fetch_json(f'/api/boards/{self.board.id}/integrations/{self.id}/activities',
+                                     payload=payload,
                                      http_method="DELETE")
 
     def edit(self, enabled=None, title=None, url=None, token=None, activities=None) -> None:
         """
         Edit the current instance by sending a PUT Request to the API
-        according to https://wekan.github.io/api/v2.55/#edit_integration
-        Then re-fetch all instance attributes.
+        according to https://wekan.github.io/api/v6.26/#edit_integration
         :param enabled: is the integration enabled?
         :param title: new name of the integration
         :param url: new URL of the integration
@@ -104,11 +107,11 @@ class Integration(WekanBase):
     def add_activities(self, activities: list) -> None:
         """
         Add subscribed activities by sending a POST Request to the API
-        according to https://wekan.github.io/api/v2.55/#new_integration_activities
-        Then re-fetch all instance attributes.
+        according to https://wekan.github.io/api/v6.26/#new_integration_activities
         :param activities: the activities value
         :return: None
         """
+        assert isinstance(activities, list)
         payload = {"activities": activities}
         self.board.client.fetch_json(f'/api/boards/{self.board.id}/integrations/{self.id}/activities',
                                      payload=payload, http_method="POST")

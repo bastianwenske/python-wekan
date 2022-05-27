@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import date
 import re
 
 from wekan.base import WekanBase
@@ -42,6 +43,10 @@ class Card(WekanBase):
         self.target_id_gantt = data['targetId_gantt']
         self.link_type_gantt = data['linkType_gantt']
         self.link_id_gantt = data['linkId_gantt']
+        try:
+            self.due_at = self.list.board.client.parse_iso_date(data['dueAt'])
+        except KeyError:
+            self.due_at = None
 
     def __repr__(self) -> str:
         return f"<Card (id: {self.id}, title: {self.title})>"
@@ -71,7 +76,7 @@ class Card(WekanBase):
 
     def __get_all_checklists(self) -> list:
         """
-        Get all Checklists by calling the API according to https://wekan.github.io/api/v2.55/#get_all_checklists
+        Get all Checklists by calling the API according to https://wekan.github.io/api/v6.26/#get_all_checklists
         :return: All Checklists
         """
         return self.list.board.client.fetch_json(f'/api/boards/{self.list.board.id}/cards/{self.id}/checklists')
@@ -87,7 +92,7 @@ class Card(WekanBase):
 
     def __get_all_comments(self) -> list:
         """
-        Get all Comments by calling the API according to https://wekan.github.io/api/v2.55/#get_all_comments
+        Get all Comments by calling the API according to https://wekan.github.io/api/v6.26/#get_all_comments
         :return: All Checklists
         """
         return self.list.board.client.fetch_json(f'/api/boards/{self.list.board.id}/cards/{self.id}/comments')
@@ -104,20 +109,9 @@ class Card(WekanBase):
         else:
             return all_comments
 
-    def edit(self, data: dict) -> None:
-        """
-        Edit the current instance by sending a PUT Request to the API
-        according to https://wekan.github.io/api/v2.55/#edit_card
-        Then re-fetch all instance attributes.
-        :param data: Changed fields as dict object. Example: {'title': 'changed title'}
-        :return: API Response as type dict containing the id of the changed Card
-        """
-        uri = f'/api/boards/{self.list.board.id}/lists/{self.list.id}/cards/{self.id}'
-        self.list.board.client.fetch_json(uri, payload=data, http_method="PUT")
-
     def delete(self) -> None:
         """
-        Delete the Card instance according to https://wekan.github.io/api/v2.55/#delete_card
+        Delete the Card instance according to https://wekan.github.io/api/v6.26/#delete_card
         :return: API Response as type dict containing the id of the deleted card
         """
         uri = f'/api/boards/{self.list.board.id}/lists/{self.list.id}/cards/{self.id}'
@@ -125,27 +119,99 @@ class Card(WekanBase):
 
     def add_checklist(self, title: str) -> CardChecklist:
         """
-        Create a new CardChecklist instance according to https://wekan.github.io/api/v2.55/#new_checklist
+        Create a new CardChecklist instance according to https://wekan.github.io/api/v6.26/#new_checklist
         :param title: Title of the new checklist.
         :return: Instance of class CardChecklist
         """
         payload = {
             "title": title
         }
-        response = self.list.board.client.fetch_json(uri_path=f'/api/boards/{self.id}/cards/{self.id}/checklists',
-                                                     http_method="POST", payload=payload)
+        uri = f'/api/boards/{self.list.board.id}/cards/{self.id}/checklists'
+        response = self.list.board.client.fetch_json(uri_path=uri, http_method="POST", payload=payload)
         return CardChecklist.from_dict(parent_card=self, data=response)
 
-    def add_comment(self, comment: str) -> CardComment:
+    def add_comment(self, text: str) -> CardComment:
         """
-        Create a new CardChecklist instance according to https://wekan.github.io/api/v2.55/#new_comment
-        :param comment: Text of the new comment.
+        Create a new CardChecklist instance according to https://wekan.github.io/api/v6.26/#new_comment
+        :param text: Text of the new comment.
         :return: Instance of class CardComment
         """
         payload = {
             "authorId": self.list.board.client.user_id,
-            "comment": comment
+            "comment": text
         }
         uri = f'/api/boards/{self.list.board.id}/cards/{self.id}/comments'
         response = self.list.board.client.fetch_json(uri, http_method="POST", payload=payload)
         return CardComment.from_dict(parent_card=self, data=response)
+
+    def edit(self, title=None, new_list=None, author_id=None, description=None, color=None, label_ids=None,
+             requested_by=None, assigned_by=None, received_at=None, start_at=None, due_at=None, end_at=None,
+             spent_time=None, is_overtime=None, custom_fields=None, members=None, new_swimlane=None) -> None:
+        """
+        Edit the current instance by sending a PUT Request to the API
+        according to https://wekan.github.io/api/v6.26/#edit_card
+        :param title: the new title of the card
+        :param new_list: instance of class List of the new list (move operation)
+        :param author_id: change the owner of the card
+        :param description: the new description of the card
+        :param color: the new color of the card
+        :param label_ids: the new list of label IDs attached to the card
+        :param requested_by: the new requestedBy field of the card
+        :param assigned_by: the new assignedBy field of the card
+        :param received_at: the new receivedAt field of the card
+        :param start_at: the new startAt field of the card
+        :param due_at: the new dueAt field of the card
+        :param end_at: the new endAt field of the card
+        :param spent_time: the new spentTime field of the card
+        :param is_overtime: the new isOverTime field of the card
+        :param custom_fields: the new customFields value of the card
+        :param members: the new list of member IDs attached to the card
+        :param new_swimlane: instance of class Swimlane of the new swimlane (move operation)
+        :return: None
+        """
+        payload = {}
+        if title:
+            payload['title'] = title
+        if new_list:
+            payload['listId'] = new_list.id
+        if author_id:
+            payload['authorId'] = author_id
+        if description:
+            payload['description'] = description
+        if color:
+            payload['color'] = color
+        if label_ids:
+            assert isinstance(label_ids, list)
+            payload['labelIds'] = label_ids
+        if requested_by:
+            payload['requestedBy'] = requested_by
+        if assigned_by:
+            payload['assignedBy'] = assigned_by
+        if received_at:
+            assert isinstance(received_at, date)
+            payload['receivedAt'] = received_at.isoformat()
+        if start_at:
+            assert isinstance(start_at, date)
+            payload['startAt'] = start_at.isoformat()
+        if due_at:
+            assert isinstance(due_at, date)
+            payload['dueAt'] = due_at.isoformat()
+        if end_at:
+            assert isinstance(end_at, date)
+            payload['endAt'] = end_at.isoformat()
+        if spent_time:
+            assert isinstance(spent_time, int)
+            payload['spentTime'] = spent_time
+        if is_overtime:
+            assert isinstance(is_overtime, bool)
+            payload['isOverTime'] = is_overtime
+        if custom_fields:
+            payload['customFields'] = custom_fields
+        if members:
+            assert isinstance(members, list)
+            payload['members'] = members
+        if new_swimlane:
+            payload['swimlaneId	'] = new_swimlane.id
+
+        uri = f'/api/boards/{self.list.board.id}/lists/{self.list.id}/cards/{self.id}'
+        self.list.board.client.fetch_json(uri, payload=payload, http_method="PUT")

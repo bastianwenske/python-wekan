@@ -46,17 +46,15 @@ class Customfield(WekanBase):
 
     def delete(self) -> dict:
         """
-        Delete the CustomField instance according to https://wekan.github.io/api/v2.55/#get_custom_field
+        Delete the CustomField instance according to https://wekan.github.io/api/v6.26/#get_custom_field
         :return: API Response as type dict containing the id of the deleted CustomField
         """
-        response = self.board.client.fetch_json(f'/api/boards/{self.board.id}/custom-fields/{self.id}',
-                                                http_method="DELETE")
-        self.board.custom_fields.remove(self)
-        return response
+        return self.board.client.fetch_json(f'/api/boards/{self.board.id}/custom-fields/{self.id}',
+                                            http_method="DELETE")
 
     def edit(self, data: dict) -> None:
         """
-        Edit the current instance by sending a PUT Request to the API. Then re-fetch all instance attributes.
+        Edit the current instance by sending a PUT Request to the API.
         :param data: Changed fields as dict object. Example: {'title': 'changed title'}
         :return: API Response as type dict containing the id of the changed CustomField
         """
