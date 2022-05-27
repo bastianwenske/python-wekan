@@ -9,8 +9,6 @@ services:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: password
       MONGO_INITDB_DATABASE: auth
-    volumes:
-      - ./appdata/mongo:/data/db
   wekan:
     image: quay.io/wekan/wekan:latest
     container_name: wekan-app
