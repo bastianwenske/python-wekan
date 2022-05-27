@@ -1,0 +1,25 @@
+---
+version: "3.9" 
+services:
+  mongodb:
+    image: mongo
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password
+      MONGO_INITDB_DATABASE: auth
+    volumes:
+      - ./appdata/mongo:/data/db
+  wekan:
+    image: quay.io/wekan/wekan:latest
+    container_name: wekan-app
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      - MONGO_URL=mongodb://admin:password@mongodb:27017
+      - ROOT_URL=http://localhost:8080
+      - WITH_API=true
+    depends_on:
+      - "mongodb"
