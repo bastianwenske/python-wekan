@@ -32,7 +32,7 @@ class List(WekanBase):
 
     def __get_all_cards_on_list(self) -> list:
         """
-        Get all cards by calling the API according to https://wekan.github.io/api/v6.26/#get_list
+        Get all cards by calling the API according to https://wekan.github.io/api/v6.22/#get_list
         :return: All cards
         """
         return self.board.client.fetch_json(f'/api/boards/{self.board.id}/lists/{self.id}/cards')
@@ -88,7 +88,7 @@ class List(WekanBase):
 
     def add_card(self, title: str, swimlane: Swimlane, description: str = "", members=None) -> Card:
         """
-        Creates a new card instance according to https://wekan.github.io/api/v6.26/#new_card
+        Creates a new card instance according to https://wekan.github.io/api/v6.22/#new_card
         :param title: Title of the new card.
         :param swimlane: Swimlane ID of the new card.
         :param members: Members of the new card.

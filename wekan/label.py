@@ -42,13 +42,13 @@ class Label(WekanBase):
     def delete(self) -> None:
         """
         Delete this Label instance.
-        Currently, not supported by API: https://wekan.github.io/api/v6.26/#wekan-rest-api-boards
+        Currently, not supported by API: https://wekan.github.io/api/v6.22/#wekan-rest-api-boards
         """
         raise NotImplementedError
 
     def edit(self, data: dict) -> None:
         """
         Edit the current instance by sending a PUT Request to the API.
-        Currently, not supported by API: https://wekan.github.io/api/v6.26/#wekan-rest-api-boards
+        Currently, not supported by API: https://wekan.github.io/api/v6.22/#wekan-rest-api-boards
         """
         raise NotImplementedError

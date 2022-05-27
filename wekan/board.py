@@ -169,35 +169,35 @@ class Board(WekanBase):
 
     def __get_all_custom_fields(self) -> list:
         """
-        Get all custom fields by calling the API according to https://wekan.github.io/api/v6.26/#get_all_custom_fields
+        Get all custom fields by calling the API according to https://wekan.github.io/api/v6.22/#get_all_custom_fields
         :return: All custom field instances as list
         """
         return self.client.fetch_json(f'/api/boards/{self.id}/custom-fields')
 
     def __get_all_lists(self) -> list:
         """
-        Get all lists by calling the API according to https://wekan.github.io/api/v6.26/#get_all_lists
+        Get all lists by calling the API according to https://wekan.github.io/api/v6.22/#get_all_lists
         :return: All lists as list
         """
         return self.client.fetch_json(f'/api/boards/{self.id}/lists')
 
     def __get_all_swimlanes(self) -> list:
         """
-        Get all swimlanes by calling the API according to https://wekan.github.io/api/v6.26/#get_all_swimlanes
+        Get all swimlanes by calling the API according to https://wekan.github.io/api/v6.22/#get_all_swimlanes
         :return: All swimlanes as list
         """
         return self.client.fetch_json(f'/api/boards/{self.id}/swimlanes')
 
     def __get_all_integrations(self) -> list:
         """
-        Get all integrations by calling the API according to https://wekan.github.io/api/v6.26/#get_integration
+        Get all integrations by calling the API according to https://wekan.github.io/api/v6.22/#get_integration
         :return: All integrations as list
         """
         return self.client.fetch_json(f'/api/boards/{self.id}/integrations')
 
     def add_list(self, title: str) -> List:
         """
-        Creates a new list instance according to https://wekan.github.io/api/v6.26/#new_list
+        Creates a new list instance according to https://wekan.github.io/api/v6.22/#new_list
         :param title: Name of the new list
         :return: Instance of Class List
         """
@@ -208,7 +208,7 @@ class Board(WekanBase):
 
     def add_swimlane(self, title: str) -> Swimlane:
         """
-        Creates a new swimlane instance according to https://wekan.github.io/api/v6.26/#new_swimlane
+        Creates a new swimlane instance according to https://wekan.github.io/api/v6.22/#new_swimlane
         :param title: Name of the new swimlane
         :return: Instance of Class Swimlane
         """
@@ -219,7 +219,7 @@ class Board(WekanBase):
 
     def add_integration(self, url: str) -> Integration:
         """
-        Creates a new integration instance according to https://wekan.github.io/api/v6.26/#new_integration
+        Creates a new integration instance according to https://wekan.github.io/api/v6.22/#new_integration
         :param url: the URL of the integration
         :return: Instance of Class Integration
         """
@@ -232,7 +232,7 @@ class Board(WekanBase):
                          automatically_on_card: bool, show_label_on_minicard: bool,
                          show_sum_at_top_of_list: bool, settings=dict) -> Customfield:
         """
-        Creates a new customfield instance according to https://wekan.github.io/api/v6.26/#new_custom_field
+        Creates a new customfield instance according to https://wekan.github.io/api/v6.22/#new_custom_field
         :param name: Name of the new custom field.
         :param field_type: Type of field. See also allowed_fields.
         :param show_on_card: Determines if the custom field should be placed on card.
@@ -261,30 +261,30 @@ class Board(WekanBase):
 
     def delete(self) -> None:
         """
-        Delete this board instance according to https://wekan.github.io/api/v6.26/#delete_board
+        Delete this board instance according to https://wekan.github.io/api/v6.22/#delete_board
         :return: None
         """
         self.client.fetch_json(f'/api/boards/{self.id}', http_method="DELETE")
 
     def export(self) -> dict:
         """
-        Export the instance Board according to https://wekan.github.io/api/v6.26/#export
+        Export the instance Board according to https://wekan.github.io/api/v6.22/#export
         :return: Export of the board in dict format.
         """
         return self.client.fetch_json(f'/api/boards/{self.id}/export')
 
     def add_label(self):
         """
-        Create a new Label instance according to https://wekan.github.io/api/v6.26/#add_board_label
+        Create a new Label instance according to https://wekan.github.io/api/v6.22/#add_board_label
         Currently, there is a problem when api handles the request:
         Api docs do not match with actual behaviour.
-        see also: https://wekan.github.io/api/v6.26/?shell#add_board_label
+        see also: https://wekan.github.io/api/v6.22/?shell#add_board_label
         """
         raise NotImplementedError
 
     def add_member(self, user_id: str, is_admin: bool, is_no_comments: bool, is_comments_only: bool) -> None:
         """
-        Add a member to a board according to https://wekan.github.io/api/v6.26/#add_board_member
+        Add a member to a board according to https://wekan.github.io/api/v6.22/#add_board_member
         :param user_id: ID of user to add as member to the board.
         :param is_admin: Defines if the user an admin of the board
         :param is_no_comments: Defines if user is allowed to comment (only)
@@ -302,7 +302,7 @@ class Board(WekanBase):
 
     def remove_member(self, user_id: str) -> None:
         """
-        Remove a member from a board according to https://wekan.github.io/api/v6.26/#remove_board_member
+        Remove a member from a board according to https://wekan.github.io/api/v6.22/#remove_board_member
         :param user_id: ID of user that will be removed as member of the board.
         :return: None
         """
@@ -312,7 +312,7 @@ class Board(WekanBase):
     def change_member_permission(self, user_id: str, is_admin: bool, is_no_comments: bool,
                                  is_comments_only: bool) -> None:
         """
-        Change the board member permission according to https://wekan.github.io/api/v6.26/#set_board_member_permission
+        Change the board member permission according to https://wekan.github.io/api/v6.22/#set_board_member_permission
         :param user_id: ID of user that permissions need to change.
         :param is_admin: Defines if the user an admin of the board
         :param is_no_comments: Defines if user is allowed to comment (only)

@@ -2,7 +2,7 @@
 This is a python client for interacting with the [WeKan®](https://github.com/wekan/wekan) REST-API.
 Each WeKan object is represented by a corresponding python object.
 
-For further details about the [WeKan® API](https://wekan.github.io/api/v6.26/#wekan-rest-api) consider the official documentation.
+For further details about the [WeKan® API](https://wekan.github.io/api/v6.22/#wekan-rest-api) consider the official documentation.
 
 ## Installation
 ```bash

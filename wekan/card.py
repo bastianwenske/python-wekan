@@ -76,7 +76,7 @@ class Card(WekanBase):
 
     def __get_all_checklists(self) -> list:
         """
-        Get all Checklists by calling the API according to https://wekan.github.io/api/v6.26/#get_all_checklists
+        Get all Checklists by calling the API according to https://wekan.github.io/api/v6.22/#get_all_checklists
         :return: All Checklists
         """
         return self.list.board.client.fetch_json(f'/api/boards/{self.list.board.id}/cards/{self.id}/checklists')
@@ -92,7 +92,7 @@ class Card(WekanBase):
 
     def __get_all_comments(self) -> list:
         """
-        Get all Comments by calling the API according to https://wekan.github.io/api/v6.26/#get_all_comments
+        Get all Comments by calling the API according to https://wekan.github.io/api/v6.22/#get_all_comments
         :return: All Checklists
         """
         return self.list.board.client.fetch_json(f'/api/boards/{self.list.board.id}/cards/{self.id}/comments')
@@ -111,7 +111,7 @@ class Card(WekanBase):
 
     def delete(self) -> None:
         """
-        Delete the Card instance according to https://wekan.github.io/api/v6.26/#delete_card
+        Delete the Card instance according to https://wekan.github.io/api/v6.22/#delete_card
         :return: API Response as type dict containing the id of the deleted card
         """
         uri = f'/api/boards/{self.list.board.id}/lists/{self.list.id}/cards/{self.id}'
@@ -119,7 +119,7 @@ class Card(WekanBase):
 
     def add_checklist(self, title: str) -> CardChecklist:
         """
-        Create a new CardChecklist instance according to https://wekan.github.io/api/v6.26/#new_checklist
+        Create a new CardChecklist instance according to https://wekan.github.io/api/v6.22/#new_checklist
         :param title: Title of the new checklist.
         :return: Instance of class CardChecklist
         """
@@ -132,7 +132,7 @@ class Card(WekanBase):
 
     def add_comment(self, text: str) -> CardComment:
         """
-        Create a new CardChecklist instance according to https://wekan.github.io/api/v6.26/#new_comment
+        Create a new CardChecklist instance according to https://wekan.github.io/api/v6.22/#new_comment
         :param text: Text of the new comment.
         :return: Instance of class CardComment
         """
@@ -149,7 +149,7 @@ class Card(WekanBase):
              spent_time=None, is_overtime=None, custom_fields=None, members=None, new_swimlane=None) -> None:
         """
         Edit the current instance by sending a PUT Request to the API
-        according to https://wekan.github.io/api/v6.26/#edit_card
+        according to https://wekan.github.io/api/v6.22/#edit_card
         :param title: the new title of the card
         :param new_list: instance of class List of the new list (move operation)
         :param author_id: change the owner of the card

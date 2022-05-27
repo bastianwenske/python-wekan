@@ -46,14 +46,14 @@ class Integration(WekanBase):
 
     def delete(self) -> None:
         """
-        Delete the Integration instance according to https://wekan.github.io/api/v6.26/#delete_integration
+        Delete the Integration instance according to https://wekan.github.io/api/v6.22/#delete_integration
         :return: None
         """
         self.board.client.fetch_json(f'/api/boards/{self.board.id}/integrations/{self.id}', http_method="DELETE")
 
     def delete_activities(self, activities: list) -> None:
         """
-        Delete all subscribed activities according to https://wekan.github.io/api/v6.26/#delete_integration_activities
+        Delete all subscribed activities according to https://wekan.github.io/api/v6.22/#delete_integration_activities
         :return: None
         """
         payload = {
@@ -66,7 +66,7 @@ class Integration(WekanBase):
     def edit(self, enabled=None, title=None, url=None, token=None, activities=None) -> None:
         """
         Edit the current instance by sending a PUT Request to the API
-        according to https://wekan.github.io/api/v6.26/#edit_integration
+        according to https://wekan.github.io/api/v6.22/#edit_integration
         :param enabled: is the integration enabled?
         :param title: new name of the integration
         :param url: new URL of the integration
@@ -107,7 +107,7 @@ class Integration(WekanBase):
     def add_activities(self, activities: list) -> None:
         """
         Add subscribed activities by sending a POST Request to the API
-        according to https://wekan.github.io/api/v6.26/#new_integration_activities
+        according to https://wekan.github.io/api/v6.22/#new_integration_activities
         :param activities: the activities value
         :return: None
         """
