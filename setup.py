@@ -6,7 +6,7 @@ setup(
     packages=['tests', 'wekan'],
     url='https://github.com/bastianwenske/python-wekan',
     download_url='https://github.com/bastianwenske/python-wekan',
-    license='Apache License 2.0',
+    license='BSD 3-Clause License',
     author='Bastian Wenske',
     author_email='',
     description='This is a python client for interacting with the WeKan® REST-API',
