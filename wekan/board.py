@@ -29,8 +29,8 @@ class Board(WekanBase):
         self.color = self.__raw_data['color']
         self.subtasks_default_board_id = self.__raw_data['subtasksDefaultBoardId']
         self.subtasks_default_list_id = self.__raw_data['subtasksDefaultListId']
-        self.allows_card_counterList = self.__raw_data['allowsCardCounterList']
-        self.allows_board_member_list = self.__raw_data['allowsBoardMemberList']
+        self.allows_card_counterList = self.__raw_data.get('allowsCardCounterList', None)
+        self.allows_board_member_list = self.__raw_data.get('allowsBoardMemberList', None)
         self.date_settings_default_board_id = self.__raw_data['dateSettingsDefaultBoardId']
         self.date_settings_default_list_id = self.__raw_data['dateSettingsDefaultListId']
         self.allow_subtasks = self.__raw_data['allowsSubtasks']
@@ -39,7 +39,7 @@ class Board(WekanBase):
         self.allows_comments = self.__raw_data['allowsComments']
         self.allows_description_title = self.__raw_data['allowsDescriptionTitle']
         self.allows_description_text = self.__raw_data['allowsDescriptionText']
-        self.allows_description_text_on_minicard = self.__raw_data['allowsDescriptionTextOnMinicard']
+        self.allows_description_text_on_minicard = self.__raw_data.get('allowsDescriptionTextOnMinicard', None)
         self.allows_card_number = self.__raw_data['allowsCardNumber']
         self.allows_activities = self.__raw_data['allowsActivities']
         self.allows_labels = self.__raw_data['allowsLabels']
@@ -48,7 +48,7 @@ class Board(WekanBase):
         self.allows_members = self.__raw_data['allowsMembers']
         self.allows_requested_by = self.__raw_data['allowsRequestedBy']
         self.allows_card_sorting_by_number = self.__raw_data['allowsCardSortingByNumber']
-        self.allows_show_lists = self.__raw_data['allowsShowLists']
+        self.allows_show_lists = self.__raw_data.get('allowsShowLists', None)
         self.allows_assigned_by = self.__raw_data['allowsAssignedBy']
         self.allows_received_date = self.__raw_data['allowsReceivedDate']
         self.allows_start_date = self.__raw_data['allowsStartDate']
@@ -58,6 +58,7 @@ class Board(WekanBase):
         self.is_overtime = self.__raw_data['isOvertime']
         self.type = self.__raw_data['type']
         self.sort = self.__raw_data['sort']
+
 
     def __repr__(self) -> str:
         return f"<Board (id: {self.id}, title: {self.title})>"
