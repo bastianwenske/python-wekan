@@ -14,7 +14,7 @@ class Swimlane(WekanBase):
         self.title = data['title']
         self.archived = data['archived']
         self.created_at = self.board.client.parse_iso_date(data['createdAt'])
-        self.updated_at = self.board.client.parse_iso_date(data['updatedAt'])
+        self.updated_at = self.board.client.parse_iso_date(data.get('updatedAt', data['createdAt'])
         self.sort = data.get('sort')
         self.color = data.get('color', '')
         self.type = data['type']
