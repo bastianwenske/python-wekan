@@ -24,8 +24,11 @@ class List(WekanBase):
         self.wip_limit = data['wipLimit']
         self.color = data.get('color', '')
 
-        data_cc = self.board.client.fetch_json(f'/api/boards/{self.board.id}/lists/{self.id}/cards_count')
-        self.cards_count = data_cc['list_cards_count']
+        try:
+            data_cc = self.board.client.fetch_json(f'/api/boards/{self.board.id}/lists/{self.id}/cards_count')
+            self.cards_count = data_cc['list_cards_count']
+        except:
+            print("Failed getting cards_count, instance possibly too old (stable snap?)")
 
     def __repr__(self) -> str:
         return f"<List (id: {self.id}, title: {self.title})>"
