@@ -55,7 +55,7 @@ class Board(WekanBase):
         self.allows_end_date = self.__raw_data['allowsEndDate']
         self.allows_due_date = self.__raw_data['allowsDueDate']
         self.present_parent_task = self.__raw_data.get('presentParentTask', None)
-        self.is_overtime = self.__raw_data['isOvertime']
+        self.is_overtime = self.__raw_data.get('isOvertime', None)
         self.type = self.__raw_data['type']
         self.sort = self.__raw_data['sort']
 
