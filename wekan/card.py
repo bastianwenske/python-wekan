@@ -38,11 +38,27 @@ class Card(WekanBase):
         self.is_overtime = data['isOvertime']
         self.subtask_sort = data['subtaskSort']
         self.linked_id = data['linkedId']
-        self.vote = data['vote']
-        self.poker = data['poker']
-        self.target_id_gantt = data['targetId_gantt']
-        self.link_type_gantt = data['linkType_gantt']
-        self.link_id_gantt = data['linkId_gantt']
+        # Following things are not always defined if card was created on a very old version of WeKan
+        try:
+            self.vote = data['vote']
+        except KeyError:
+            self.vote = None
+        try:
+            self.poker = data['poker']
+        except KeyError:
+            self.poker = None
+        try:
+            self.target_id_gantt = data['targetId_gantt']
+        except KeyError:
+            self.target_id_gantt = None
+        try:
+            self.link_type_gantt = data['linkType_gantt']
+        except KeyError:
+            self.link_type_gantt = None
+        try:
+            self.link_id_gantt = data['linkId_gantt']
+        except KeyError:
+            self.link_id_gantt = None
         try:
             self.due_at = self.list.board.client.parse_iso_date(data['dueAt'])
         except KeyError:
