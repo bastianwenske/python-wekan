@@ -4,7 +4,7 @@
 This is a python client for interacting with the [WeKan®](https://github.com/wekan/wekan) REST-API.
 Each WeKan object is represented by a corresponding python object.
 
-For further details about the [WeKan® API](https://wekan.github.io/api/v6.22/#wekan-rest-api) consider the official documentation.
+For further details about the [WeKan® API](https://wekan.github.io/api) consider the official documentation.
 
 ## Installation
 ```bash
@@ -34,9 +34,9 @@ if __name__ == '__main__':
 ```
 
 ### Dependencies between the wekan python objects
-There are dependencies between the objects.
+There are dependencies between objects.
 
-This visualization shows the dependencies between the various objects.
+This visualisation shows the dependencies between different objects.
 
 ```mermaid
   graph TD;
@@ -144,6 +144,5 @@ pipenv requirements --dev-only > requirements_dev.txt
  ```
 
 ## credits
-This project is build on base of [py-trello](https://github.com/sarumont/py-trello).
-Some methods and design structures were adopted 1:1.
-
+This project is based on [py-trello](https://github.com/sarumont/py-trello).
+Some methods and design structures have been adopted 1:1.
