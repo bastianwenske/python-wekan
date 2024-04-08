@@ -227,7 +227,7 @@ class Card(WekanBase):
             assert isinstance(members, list)
             payload['members'] = members
         if new_swimlane:
-            payload['swimlaneId	'] = new_swimlane.id
+            payload['swimlaneId'] = new_swimlane.id
 
         uri = f'/api/boards/{self.list.board.id}/lists/{self.list.id}/cards/{self.id}'
         self.list.board.client.fetch_json(uri, payload=payload, http_method="PUT")
