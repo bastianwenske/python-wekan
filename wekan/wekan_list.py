@@ -1,9 +1,11 @@
 from __future__ import annotations
+import typing
+if typing.TYPE_CHECKING:
+	from wekan.board import Board
 
 import re
 
 from wekan.base import WekanBase
-from wekan.board import Board
 from wekan.card import Card
 from wekan.swimlane import Swimlane
 

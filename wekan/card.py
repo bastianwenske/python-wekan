@@ -1,4 +1,7 @@
 from __future__ import annotations
+import typing
+if typing.TYPE_CHECKING:
+	from wekan.wekan_list import List
 
 from datetime import date
 import re
@@ -6,7 +9,6 @@ import re
 from wekan.base import WekanBase
 from wekan.card_checklist import CardChecklist
 from wekan.card_comment import CardComment
-from wekan.wekan_list import List
 
 
 class Card(WekanBase):

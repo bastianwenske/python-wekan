@@ -1,7 +1,9 @@
 from __future__ import annotations
+import typing
+if typing.TYPE_CHECKING:
+	from wekan.card import Card
 
 from wekan.base import WekanBase
-from wekan.card import Card
 from wekan.card_checklist_item import CardChecklistItem
 
 

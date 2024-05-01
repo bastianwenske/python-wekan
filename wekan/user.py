@@ -1,7 +1,9 @@
 from __future__ import annotations
+import typing
+if typing.TYPE_CHECKING:
+	from wekan.wekan_client import WekanClient
 
 from wekan.base import WekanBase
-from wekan.wekan_client import WekanClient
 
 class User(WekanBase):
     def __init__(self, client: WekanClient, user_id: str) -> None:

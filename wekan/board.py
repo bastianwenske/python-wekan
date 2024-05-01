@@ -1,4 +1,7 @@
 from __future__ import annotations
+import typing
+if typing.TYPE_CHECKING:
+	from wekan.wekan_client import WekanClient
 
 import re
 
@@ -7,7 +10,6 @@ from wekan.customfield import Customfield
 from wekan.integration import Integration
 from wekan.label import Label
 from wekan.swimlane import Swimlane
-from wekan.wekan_client import WekanClient
 from wekan.wekan_list import List
 
 
