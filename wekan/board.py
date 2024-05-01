@@ -104,7 +104,7 @@ class Board(WekanBase):
         :return: list of labels
         """
         all_labels = Label.from_list(parent_board=self, data=self.__raw_data.get('labels', []))
-        return [label for label in all_labels if re.search(regex_filter, label.title)]
+        return [label for label in all_labels if re.search(regex_filter, label.name)]
 
     def list_lists(self, regex_filter='.*') -> list[List]:
         """
