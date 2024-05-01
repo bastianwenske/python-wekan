@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 from wekan.base import WekanBase
+from wekan.board import Board
 
 
 class Label(WekanBase):
-    def __init__(self, parent_board, label_id: str, name: str, color="") -> None:
+    def __init__(self, parent_board: Board, label_id: str, name: str, color="") -> None:
         """ Reference to a Wekan Label """
         super().__init__()
         self.board = parent_board
@@ -16,7 +17,7 @@ class Label(WekanBase):
         return f"<Label (name: {self.name}, id: {self.id}, color={self.color})>"
 
     @classmethod
-    def from_dict(cls, parent_board, data: dict) -> Label:
+    def from_dict(cls, parent_board: Board, data: dict) -> Label:
         """
         Creates an instance of class Label by using the API-Response of Label GET.
         :param parent_board: Instance of Class Board pointing to the current Board
@@ -26,7 +27,7 @@ class Label(WekanBase):
         return cls(parent_board=parent_board, label_id=data['_id'], name=data['name'], color=data['color'])
 
     @classmethod
-    def from_list(cls, parent_board, data: list) -> list:
+    def from_list(cls, parent_board: Board, data: list) -> list[Label]:
         """
         Wrapper around function from_dict to process multiple objects within one function call.
         :param parent_board: Instance of Class Board pointing to the current Board

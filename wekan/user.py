@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from wekan.base import WekanBase
-
+from wekan.wekan_client import WekanClient
 
 class User(WekanBase):
-    def __init__(self, client, user_id: str) -> None:
+    def __init__(self, client: WekanClient, user_id: str) -> None:
         """ Reference to a Wekan User """
         super().__init__()
         self.id = user_id
@@ -29,7 +29,7 @@ class User(WekanBase):
         return f"<User (id: {self.id}, username: {self.username})>"
 
     @classmethod
-    def from_dict(cls, client, data: dict) -> User:
+    def from_dict(cls, client: WekanClient, data: dict) -> User:
         """
         Creates an instance of class User by using the API-Response of User GET.
         :param client: Instance of Class WekanClient pointing to the Client
@@ -39,7 +39,7 @@ class User(WekanBase):
         return cls(client=client, user_id=data['_id'])
 
     @classmethod
-    def from_list(cls, client, data: list) -> list:
+    def from_list(cls, client: WekanClient, data: list) -> list[User]:
         """
         Wrapper around function from_dict to process multiple objects within one function call.
         :param client: Instance of Class WekanClient pointing to the Client

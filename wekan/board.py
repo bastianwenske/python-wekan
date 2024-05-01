@@ -7,11 +7,12 @@ from wekan.customfield import Customfield
 from wekan.integration import Integration
 from wekan.label import Label
 from wekan.swimlane import Swimlane
+from wekan.wekan_client import WekanClient
 from wekan.wekan_list import List
 
 
 class Board(WekanBase):
-    def __init__(self, client, board_id: str) -> None:
+    def __init__(self, client: WekanClient, board_id: str) -> None:
         """ Reference to a Wekan board. """
         super().__init__()
         self.client = client
@@ -64,7 +65,7 @@ class Board(WekanBase):
         return f"<Board (id: {self.id}, title: {self.title})>"
 
     @classmethod
-    def from_dict(cls, client, data: dict, ) -> Board:
+    def from_dict(cls, client: WekanClient, data: dict, ) -> Board:
         """
         Creates an instance of class Customfield by using the API-Response of Customfield creation.
         :param client: Instance of the wekan api client
@@ -74,7 +75,7 @@ class Board(WekanBase):
         return cls(client=client, board_id=data['_id'])
 
     @classmethod
-    def from_list(cls, client, data: dict) -> list:
+    def from_list(cls, client: WekanClient, data: dict) -> list[Board]:
         """
         Wrapper around function from_dict to process multiple objects within one function call.
         :param client: Instance of the wekan api client
@@ -87,16 +88,16 @@ class Board(WekanBase):
             instances.append(cls(client=client, board_id=board['_id']))
         return instances
 
-    def list_custom_fields(self, regex_filter='.*') -> list:
+    def list_custom_fields(self, regex_filter='.*') -> list[Customfield]:
         """
         List all (matching) custom field
         :param regex_filter: Regex filter that will be applied to the search.
-        :return: list of users
+        :return: Instances of class Customfield
         """
         all_custom_fields = Customfield.from_list(parent_board=self, data=self.__get_all_custom_fields())
         return [field for field in all_custom_fields if re.search(regex_filter, field.name)]
 
-    def list_labels(self, regex_filter='.*') -> list:
+    def list_labels(self, regex_filter='.*') -> list[Label]:
         """
         List all (matching) labels
         :param regex_filter: Regex filter that will be applied to the search.
@@ -105,7 +106,7 @@ class Board(WekanBase):
         all_labels = Label.from_list(parent_board=self, data=self.__raw_data.get('labels', []))
         return [label for label in all_labels if re.search(regex_filter, label.title)]
 
-    def list_lists(self, regex_filter='.*') -> list:
+    def list_lists(self, regex_filter='.*') -> list[List]:
         """
         List all (matching) labels
         :param regex_filter: Regex filter that will be applied to the search.
@@ -114,7 +115,7 @@ class Board(WekanBase):
         all_lists = List.from_list(parent_board=self, data=self.__get_all_lists())
         return [w_list for w_list in all_lists if re.search(regex_filter, w_list.title)]
 
-    def list_swimlanes(self, regex_filter='.*') -> list:
+    def list_swimlanes(self, regex_filter='.*') -> list[Swimlane]:
         """
         List all (matching) swimlanes
         :param regex_filter: Regex filter that will be applied to the search.
@@ -123,7 +124,7 @@ class Board(WekanBase):
         all_swimlanes = Swimlane.from_list(parent_board=self, data=self.__get_all_swimlanes())
         return [swimlane for swimlane in all_swimlanes if re.search(regex_filter, swimlane.title)]
 
-    def list_integrations(self, regex_filter='.*') -> list:
+    def list_integrations(self, regex_filter='.*') -> list[Integration]:
         """
         List all (matching) integrations
         :param regex_filter: Regex filter that will be applied to the search.
