@@ -46,7 +46,7 @@ class Customfield(WekanBase):
 
     def delete(self) -> dict:
         """
-        Delete the CustomField instance according to https://wekan.github.io/api/v6.22/#get_custom_field
+        Delete the CustomField instance according to https://wekan.github.io/api/v7.42/#get_custom_field
         :return: API Response as type dict containing the id of the deleted CustomField
         """
         return self.board.client.fetch_json(f'/api/boards/{self.board.id}/custom-fields/{self.id}',

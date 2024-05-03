@@ -48,7 +48,7 @@ class CardChecklistItem(WekanBase):
     def edit(self, is_finished=None, title=None) -> None:
         """
         Edit the current instance by sending a PUT Request to the API
-        according to https://wekan.github.io/api/v6.22/#edit_checklist_item
+        according to https://wekan.github.io/api/v7.42/#edit_checklist_item
         :param is_finished: is the item checked?
         :param title: the new text of the item
         :return: None
@@ -80,7 +80,7 @@ class CardChecklistItem(WekanBase):
 
     def delete(self) -> None:
         """
-        Delete the Card Checklist instance according to https://wekan.github.io/api/v6.22/#delete_checklist_item
+        Delete the Card Checklist instance according to https://wekan.github.io/api/v7.42/#delete_checklist_item
         :return: None
         """
         uri = f'/api/boards/{self.checklist.card.board.id}/cards/{self.checklist.card.id}/' \

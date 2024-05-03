@@ -53,7 +53,7 @@ class User(WekanBase):
 
     def delete(self) -> None:
         """
-        Delete the User instance according to https://wekan.github.io/api/v6.22/delete_user
+        Delete the User instance according to https://wekan.github.io/api/v7.42/delete_user
         :return: None
         """
         self.client.fetch_json(f'/api/users/{self.id}', http_method="DELETE")
@@ -61,7 +61,7 @@ class User(WekanBase):
     def edit(self, action: str) -> None:
         """
         Edit the current instance by sending a PUT Request to the API
-        according to https://wekan.github.io/api/v6.22/#edit_user.
+        according to https://wekan.github.io/api/v7.42/#edit_user.
         :param action: Type of action. See also allowed_actions.
         :return: None
         """

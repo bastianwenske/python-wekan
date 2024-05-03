@@ -53,7 +53,7 @@ class WekanClient(object):
 
     def __get_all_users(self) -> list:
         """
-        Get all users by calling the API according to https://wekan.github.io/api/v6.22/#get_all_users
+        Get all users by calling the API according to https://wekan.github.io/api/v7.42/#get_all_users
         IMPORTANT: Only the admin user (the first user) can call this REST API Endpoint.
         :return: List of instances of class User
         """
@@ -142,7 +142,7 @@ class WekanClient(object):
                   is_admin=True, is_active=True, is_no_comments=False,
                   is_comment_only=False, permission='private') -> Board:
         """
-        Creates a new board according to https://wekan.github.io/api/v6.22/#new_board
+        Creates a new board according to https://wekan.github.io/api/v7.42/#new_board
         :param title: Title of the board.
         :param color: Color of the board.
         :param owner: Owner (ID) of the board.
@@ -169,7 +169,7 @@ class WekanClient(object):
 
     def add_user(self, username: str, email: str, password: str) -> User:
         """
-        Creates a new board according to https://wekan.github.io/api/v6.22/#new_user
+        Creates a new board according to https://wekan.github.io/api/v7.42/#new_user
         :param username: Username of the new user.
         :param email: E-Mail of the new user.
         :param password: Passwort of the new user.

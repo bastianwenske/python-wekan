@@ -54,13 +54,13 @@ class CardChecklist(WekanBase):
     def edit(self, data: dict) -> None:
         """
         Edit the current instance by sending a PUT Request to the API.
-        Currently, this is not supported by API. See also: https://wekan.github.io/api/v6.22/#wekan-rest-api-checklists
+        Currently, this is not supported by API. See also: https://wekan.github.io/api/v7.42/#wekan-rest-api-checklists
         """
         raise NotImplementedError
 
     def delete(self) -> None:
         """
-        Delete the Card Checklist instance according to https://wekan.github.io/api/v6.22/#delete_checklist
+        Delete the Card Checklist instance according to https://wekan.github.io/api/v7.42/#delete_checklist
         :return: None
         """
         uri = f'/api/boards/{self.card.list.board.id}/cards/{self.card.id}/checklists/{self.id}'
@@ -70,6 +70,6 @@ class CardChecklist(WekanBase):
         """
         Add a new CardCheckListItem.
         Currently, this is not supported by API.
-        See also: https://wekan.github.io/api/v6.22/#wekan-rest-api-checklistitems
+        See also: https://wekan.github.io/api/v7.42/#wekan-rest-api-checklistitems
         """
         raise NotImplementedError

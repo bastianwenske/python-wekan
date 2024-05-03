@@ -47,7 +47,7 @@ class Swimlane(WekanBase):
 
     def delete(self) -> None:
         """
-        Delete the Swimlane instance according to https://wekan.github.io/api/v6.22/#get_swimlane
+        Delete the Swimlane instance according to https://wekan.github.io/api/v7.42/#get_swimlane
         :return: None
         """
         self.board.client.fetch_json(f'/api/boards/{self.board.id}/swimlanes/{self.id}', http_method="DELETE")
