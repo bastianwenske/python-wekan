@@ -1,10 +1,13 @@
 from __future__ import annotations
+import typing
+if typing.TYPE_CHECKING:
+	from wekan.board import Board
 
 from wekan.base import WekanBase
 
 
 class Integration(WekanBase):
-    def __init__(self, parent_board, integration_id: str) -> None:
+    def __init__(self, parent_board: Board, integration_id: str) -> None:
         """ Reference to a Wekan Integration """
         super().__init__()
         self.board = parent_board
@@ -22,7 +25,7 @@ class Integration(WekanBase):
         return f"<Integration (id: {self.id}, title: {self.title})>"
 
     @classmethod
-    def from_dict(cls, parent_board, data: dict) -> Integration:
+    def from_dict(cls, parent_board: Board, data: dict) -> Integration:
         """
         Creates an instance of class Integration by using the API-Response of Integration creation.
         :param parent_board: Instance of Class Board pointing to the current Board
@@ -32,7 +35,7 @@ class Integration(WekanBase):
         return cls(parent_board=parent_board, integration_id=data['_id'])
 
     @classmethod
-    def from_list(cls, parent_board, data: list) -> list:
+    def from_list(cls, parent_board: Board, data: list) -> list[Integration]:
         """
         Wrapper around function from_dict to process multiple objects within one function call.
         :param parent_board: Instance of Class Board pointing to the current Board
@@ -89,7 +92,7 @@ class Integration(WekanBase):
         self.board.client.fetch_json(f'/api/boards/{self.board.id}/integrations/{self.id}',
                                      payload=payload, http_method="PUT")
 
-    def change_title(self, new_title) -> None:
+    def change_title(self, new_title: str) -> None:
         """
         Set a new title for this instance.
         :param new_title: The new title.

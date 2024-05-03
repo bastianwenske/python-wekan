@@ -1,4 +1,7 @@
 from __future__ import annotations
+import typing
+if typing.TYPE_CHECKING:
+	from wekan.wekan_list import List
 
 from datetime import date
 import re
@@ -9,7 +12,7 @@ from wekan.card_comment import CardComment
 
 
 class Card(WekanBase):
-    def __init__(self, parent_list, card_id: str) -> None:
+    def __init__(self, parent_list: List, card_id: str) -> None:
         """ Reference to a Wekan Card """
         super().__init__()
         self.list = parent_list
@@ -74,7 +77,7 @@ class Card(WekanBase):
         return f"<Card (id: {self.id}, title: {self.title})>"
 
     @classmethod
-    def from_dict(cls, parent_list, data: dict) -> Card:
+    def from_dict(cls, parent_list: List, data: dict) -> Card:
         """
         Creates an instance of class Card by using the API-Response of Card GET.
         :param parent_list: Instance of Class List pointing to the current Board
@@ -84,7 +87,7 @@ class Card(WekanBase):
         return cls(parent_list=parent_list, card_id=data['_id'])
 
     @classmethod
-    def from_list(cls, parent_list, data: list) -> list:
+    def from_list(cls, parent_list: List, data: list) -> list[Card]:
         """
         Wrapper around function from_dict to process multiple objects within one function call.
         :param parent_list: Instance of Class List pointing to the current Board
@@ -103,7 +106,7 @@ class Card(WekanBase):
         """
         return self.list.board.client.fetch_json(f'/api/boards/{self.list.board.id}/cards/{self.id}/checklists')
 
-    def list_checklists(self, regex_filter='.*') -> list:
+    def list_checklists(self, regex_filter='.*') -> list[CardChecklist]:
         """
         List all (matching) checklists
         :param regex_filter: Regex filter that will be applied to the search.
@@ -119,11 +122,11 @@ class Card(WekanBase):
         """
         return self.list.board.client.fetch_json(f'/api/boards/{self.list.board.id}/cards/{self.id}/comments')
 
-    def list_comments(self, author_id=None) -> list:
+    def list_comments(self, author_id=None) -> list[CardComment]:
         """
-        List all (matching) checklists
+        List all (matching) comments
         :param author_id: author_id filter that will be applied to the search.
-        :return: list of checklists
+        :return: list of comments
         """
         all_comments = CardComment.from_list(parent_card=self, data=self.__get_all_comments())
         if author_id:

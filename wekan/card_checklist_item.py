@@ -1,10 +1,13 @@
 from __future__ import annotations
+import typing
+if typing.TYPE_CHECKING:
+	from wekan.card_checklist import CardChecklist
 
 from wekan.base import WekanBase
 
 
 class CardChecklistItem(WekanBase):
-    def __init__(self, parent_checklist, item_id: str, title: str, is_finished: bool) -> None:
+    def __init__(self, parent_checklist: CardChecklist, item_id: str, title: str, is_finished: bool) -> None:
         """ Reference to a Wekan CardChecklistItem """
         super().__init__()
         self.checklist = parent_checklist
@@ -21,7 +24,7 @@ class CardChecklistItem(WekanBase):
         return f"<CardChecklistItem (id: {self.id}, title: {self.title}, is_finished: {self.is_finished})>"
 
     @classmethod
-    def from_dict(cls, parent_checklist, data: dict) -> CardChecklistItem:
+    def from_dict(cls, parent_checklist: CardChecklist, data: dict) -> CardChecklistItem:
         """
         Creates an instance of class CardChecklist by using the API-Response of CardChecklist GET.
         :param parent_checklist: Instance of Class CardChecklist pointing to the current Checklist of this ChecklistItem
@@ -32,12 +35,12 @@ class CardChecklistItem(WekanBase):
                    title=data['title'], is_finished=data['isFinished'])
 
     @classmethod
-    def from_list(cls, parent_checklist, data: list) -> list:
+    def from_list(cls, parent_checklist: CardChecklist, data: list) -> list[CardChecklistItem]:
         """
         Wrapper around function from_dict to process multiple objects within one function call.
         :param parent_checklist: Instance of Class CardChecklist pointing to the current Checklist of this ChecklistItem
         :param data: Response of CardChecklist GET.
-        :return: Instances of class CardChecklist
+        :return: Instances of class CardChecklistItem
         """
         instances = []
         for item in data:
@@ -70,7 +73,7 @@ class CardChecklistItem(WekanBase):
         """
         self.edit(is_finished=True)
 
-    def change_title(self, new_title) -> None:
+    def change_title(self, new_title: str) -> None:
         """
         Set a new title for this instance.
         :param new_title: The new title.

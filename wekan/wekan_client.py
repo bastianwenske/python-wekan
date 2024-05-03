@@ -41,7 +41,7 @@ class WekanClient(object):
         """
         return self.fetch_json(uri_path=f'/api/users/{self.user_id}/boards')
 
-    def list_boards(self, regex_filter='.*') -> list:
+    def list_boards(self, regex_filter='.*') -> list[Board]:
         """
         List all (matching) boards
         :return: list of boards
@@ -59,7 +59,7 @@ class WekanClient(object):
         """
         return self.fetch_json('/api/users')
 
-    def list_users(self, regex_filter='.*') -> list:
+    def list_users(self, regex_filter='.*') -> list[User]:
         """
         List all (matching) users
         :return: list of users
