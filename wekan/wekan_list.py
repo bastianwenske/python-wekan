@@ -1,4 +1,7 @@
 from __future__ import annotations
+import typing
+if typing.TYPE_CHECKING:
+	from wekan.board import Board
 
 import re
 
@@ -8,7 +11,7 @@ from wekan.swimlane import Swimlane
 
 
 class List(WekanBase):
-    def __init__(self, parent_board, list_id: str) -> None:
+    def __init__(self, parent_board: Board, list_id: str) -> None:
         """ Reference to a Wekan List. """
         super().__init__()
         self.board = parent_board
@@ -35,12 +38,12 @@ class List(WekanBase):
 
     def __get_all_cards_on_list(self) -> list:
         """
-        Get all cards by calling the API according to https://wekan.github.io/api/v6.22/#get_list
+        Get all cards by calling the API according to https://wekan.github.io/api/v7.42/#get_list
         :return: All cards
         """
         return self.board.client.fetch_json(f'/api/boards/{self.board.id}/lists/{self.id}/cards')
 
-    def list_cards(self, regex_filter='.*') -> list:
+    def list_cards(self, regex_filter='.*') -> list[Card]:
         """
         List all (matching) cards
         :param regex_filter: Regex filter that will be applied to the search.
@@ -59,7 +62,7 @@ class List(WekanBase):
         return Card.from_dict(parent_list=self, data=response)
 
     @classmethod
-    def from_dict(cls, parent_board, data: dict) -> List:
+    def from_dict(cls, parent_board: Board, data: dict) -> List:
         """
         Creates an instance of class List by using the API-Response of List creation.
         :param parent_board: Instance of Class Board pointing to the current Board
@@ -69,7 +72,7 @@ class List(WekanBase):
         return cls(parent_board=parent_board, list_id=data['_id'])
 
     @classmethod
-    def from_list(cls, parent_board, data: list) -> list:
+    def from_list(cls, parent_board: Board, data: list) -> list[List]:
         """
         Wrapper around function from_dict to process multiple objects within one function call.
         :param parent_board: Instance of Class Board pointing to the current Board
@@ -91,7 +94,7 @@ class List(WekanBase):
 
     def add_card(self, title: str, swimlane: Swimlane, description: str = "", members=None) -> Card:
         """
-        Creates a new card instance according to https://wekan.github.io/api/v6.22/#new_card
+        Creates a new card instance according to https://wekan.github.io/api/v7.42/#new_card
         :param title: Title of the new card.
         :param swimlane: Swimlane ID of the new card.
         :param members: Members of the new card.

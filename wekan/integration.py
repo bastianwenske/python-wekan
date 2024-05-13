@@ -1,10 +1,13 @@
 from __future__ import annotations
+import typing
+if typing.TYPE_CHECKING:
+	from wekan.board import Board
 
 from wekan.base import WekanBase
 
 
 class Integration(WekanBase):
-    def __init__(self, parent_board, integration_id: str) -> None:
+    def __init__(self, parent_board: Board, integration_id: str) -> None:
         """ Reference to a Wekan Integration """
         super().__init__()
         self.board = parent_board
@@ -22,7 +25,7 @@ class Integration(WekanBase):
         return f"<Integration (id: {self.id}, title: {self.title})>"
 
     @classmethod
-    def from_dict(cls, parent_board, data: dict) -> Integration:
+    def from_dict(cls, parent_board: Board, data: dict) -> Integration:
         """
         Creates an instance of class Integration by using the API-Response of Integration creation.
         :param parent_board: Instance of Class Board pointing to the current Board
@@ -32,7 +35,7 @@ class Integration(WekanBase):
         return cls(parent_board=parent_board, integration_id=data['_id'])
 
     @classmethod
-    def from_list(cls, parent_board, data: list) -> list:
+    def from_list(cls, parent_board: Board, data: list) -> list[Integration]:
         """
         Wrapper around function from_dict to process multiple objects within one function call.
         :param parent_board: Instance of Class Board pointing to the current Board
@@ -46,14 +49,14 @@ class Integration(WekanBase):
 
     def delete(self) -> None:
         """
-        Delete the Integration instance according to https://wekan.github.io/api/v6.22/#delete_integration
+        Delete the Integration instance according to https://wekan.github.io/api/v7.42/#delete_integration
         :return: None
         """
         self.board.client.fetch_json(f'/api/boards/{self.board.id}/integrations/{self.id}', http_method="DELETE")
 
     def delete_activities(self, activities: list) -> None:
         """
-        Delete all subscribed activities according to https://wekan.github.io/api/v6.22/#delete_integration_activities
+        Delete all subscribed activities according to https://wekan.github.io/api/v7.42/#delete_integration_activities
         :return: None
         """
         payload = {
@@ -66,7 +69,7 @@ class Integration(WekanBase):
     def edit(self, enabled=None, title=None, url=None, token=None, activities=None) -> None:
         """
         Edit the current instance by sending a PUT Request to the API
-        according to https://wekan.github.io/api/v6.22/#edit_integration
+        according to https://wekan.github.io/api/v7.42/#edit_integration
         :param enabled: is the integration enabled?
         :param title: new name of the integration
         :param url: new URL of the integration
@@ -89,7 +92,7 @@ class Integration(WekanBase):
         self.board.client.fetch_json(f'/api/boards/{self.board.id}/integrations/{self.id}',
                                      payload=payload, http_method="PUT")
 
-    def change_title(self, new_title) -> None:
+    def change_title(self, new_title: str) -> None:
         """
         Set a new title for this instance.
         :param new_title: The new title.
@@ -107,7 +110,7 @@ class Integration(WekanBase):
     def add_activities(self, activities: list) -> None:
         """
         Add subscribed activities by sending a POST Request to the API
-        according to https://wekan.github.io/api/v6.22/#new_integration_activities
+        according to https://wekan.github.io/api/v7.42/#new_integration_activities
         :param activities: the activities value
         :return: None
         """

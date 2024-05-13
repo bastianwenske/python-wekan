@@ -1,10 +1,12 @@
 from __future__ import annotations
+import typing
+if typing.TYPE_CHECKING:
+	from wekan.wekan_client import WekanClient
 
 from wekan.base import WekanBase
 
-
 class User(WekanBase):
-    def __init__(self, client, user_id: str) -> None:
+    def __init__(self, client: WekanClient, user_id: str) -> None:
         """ Reference to a Wekan User """
         super().__init__()
         self.id = user_id
@@ -29,7 +31,7 @@ class User(WekanBase):
         return f"<User (id: {self.id}, username: {self.username})>"
 
     @classmethod
-    def from_dict(cls, client, data: dict) -> User:
+    def from_dict(cls, client: WekanClient, data: dict) -> User:
         """
         Creates an instance of class User by using the API-Response of User GET.
         :param client: Instance of Class WekanClient pointing to the Client
@@ -39,7 +41,7 @@ class User(WekanBase):
         return cls(client=client, user_id=data['_id'])
 
     @classmethod
-    def from_list(cls, client, data: list) -> list:
+    def from_list(cls, client: WekanClient, data: list) -> list[User]:
         """
         Wrapper around function from_dict to process multiple objects within one function call.
         :param client: Instance of Class WekanClient pointing to the Client
@@ -53,7 +55,7 @@ class User(WekanBase):
 
     def delete(self) -> None:
         """
-        Delete the User instance according to https://wekan.github.io/api/v6.22/delete_user
+        Delete the User instance according to https://wekan.github.io/api/v7.42/delete_user
         :return: None
         """
         self.client.fetch_json(f'/api/users/{self.id}', http_method="DELETE")
@@ -61,7 +63,7 @@ class User(WekanBase):
     def edit(self, action: str) -> None:
         """
         Edit the current instance by sending a PUT Request to the API
-        according to https://wekan.github.io/api/v6.22/#edit_user.
+        according to https://wekan.github.io/api/v7.42/#edit_user.
         :param action: Type of action. See also allowed_actions.
         :return: None
         """

@@ -1,11 +1,14 @@
 from __future__ import annotations
+import typing
+if typing.TYPE_CHECKING:
+	from wekan.card import Card
 
 from wekan.base import WekanBase
 from wekan.card_checklist_item import CardChecklistItem
 
 
 class CardChecklist(WekanBase):
-    def __init__(self, parent_card, checklist_id: str) -> None:
+    def __init__(self, parent_card: Card, checklist_id: str) -> None:
         """ Reference to a Wekan Card Checklist """
         super().__init__()
         self.card = parent_card
@@ -18,7 +21,7 @@ class CardChecklist(WekanBase):
         self.createdAt = self.card.list.board.client.parse_iso_date(self.__raw_data['createdAt'])
         self.modified_at = self.card.list.board.client.parse_iso_date(self.__raw_data['modifiedAt'])
 
-    def list_checklists(self) -> list:
+    def list_checklists(self) -> list[CardChecklist]:
         """
         List all checklist items
         :return: list of checklist items
@@ -29,7 +32,7 @@ class CardChecklist(WekanBase):
         return f"<CardChecklist (id: {self.id}, title: {self.title})>"
 
     @classmethod
-    def from_dict(cls, parent_card, data: dict) -> CardChecklist:
+    def from_dict(cls, parent_card: Card, data: dict) -> CardChecklist:
         """
         Creates an instance of class CardChecklist by using the API-Response of CardChecklist GET.
         :param parent_card: Instance of Class Card pointing to the current Card of this Checklist
@@ -39,7 +42,7 @@ class CardChecklist(WekanBase):
         return cls(parent_card=parent_card, checklist_id=data['_id'])
 
     @classmethod
-    def from_list(cls, parent_card, data: list) -> list:
+    def from_list(cls, parent_card: Card, data: list) -> list[CardChecklist]:
         """
         Wrapper around function from_dict to process multiple objects within one function call.
         :param parent_card: Instance of Class Card pointing to the current Card of this Checklist
@@ -54,13 +57,13 @@ class CardChecklist(WekanBase):
     def edit(self, data: dict) -> None:
         """
         Edit the current instance by sending a PUT Request to the API.
-        Currently, this is not supported by API. See also: https://wekan.github.io/api/v6.22/#wekan-rest-api-checklists
+        Currently, this is not supported by API. See also: https://wekan.github.io/api/v7.42/#wekan-rest-api-checklists
         """
         raise NotImplementedError
 
     def delete(self) -> None:
         """
-        Delete the Card Checklist instance according to https://wekan.github.io/api/v6.22/#delete_checklist
+        Delete the Card Checklist instance according to https://wekan.github.io/api/v7.42/#delete_checklist
         :return: None
         """
         uri = f'/api/boards/{self.card.list.board.id}/cards/{self.card.id}/checklists/{self.id}'
@@ -70,6 +73,6 @@ class CardChecklist(WekanBase):
         """
         Add a new CardCheckListItem.
         Currently, this is not supported by API.
-        See also: https://wekan.github.io/api/v6.22/#wekan-rest-api-checklistitems
+        See also: https://wekan.github.io/api/v7.42/#wekan-rest-api-checklistitems
         """
         raise NotImplementedError

@@ -1,4 +1,7 @@
 from __future__ import annotations
+import typing
+if typing.TYPE_CHECKING:
+	from wekan.wekan_list import List
 
 from datetime import date
 import re
@@ -9,7 +12,7 @@ from wekan.card_comment import CardComment
 
 
 class Card(WekanBase):
-    def __init__(self, parent_list, card_id: str) -> None:
+    def __init__(self, parent_list: List, card_id: str) -> None:
         """ Reference to a Wekan Card """
         super().__init__()
         self.list = parent_list
@@ -26,7 +29,6 @@ class Card(WekanBase):
         self.card_number = data['cardNumber']
         self.archived = data['archived']
         self.parent_id = data['parentId']
-        self.cover_id = data['coverId']
         self.created_at = self.list.board.client.parse_iso_date(data['createdAt'])
         self.modified_at = self.list.board.client.parse_iso_date(data['modifiedAt'])
         self.date_last_activity = self.list.board.client.parse_iso_date(data['dateLastActivity'])
@@ -39,6 +41,10 @@ class Card(WekanBase):
         self.subtask_sort = data['subtaskSort']
         self.linked_id = data['linkedId']
         # Following things are not always defined if card was created on a very old version of WeKan
+        try:
+            self.cover_id = data['coverId']
+        except KeyError:
+            self.cover_id = None
         try:
             self.vote = data['vote']
         except KeyError:
@@ -69,7 +75,7 @@ class Card(WekanBase):
         return f"<Card (id: {self.id}, title: {self.title})>"
 
     @classmethod
-    def from_dict(cls, parent_list, data: dict) -> Card:
+    def from_dict(cls, parent_list: List, data: dict) -> Card:
         """
         Creates an instance of class Card by using the API-Response of Card GET.
         :param parent_list: Instance of Class List pointing to the current Board
@@ -79,7 +85,7 @@ class Card(WekanBase):
         return cls(parent_list=parent_list, card_id=data['_id'])
 
     @classmethod
-    def from_list(cls, parent_list, data: list) -> list:
+    def from_list(cls, parent_list: List, data: list) -> list[Card]:
         """
         Wrapper around function from_dict to process multiple objects within one function call.
         :param parent_list: Instance of Class List pointing to the current Board
@@ -93,12 +99,12 @@ class Card(WekanBase):
 
     def __get_all_checklists(self) -> list:
         """
-        Get all Checklists by calling the API according to https://wekan.github.io/api/v6.22/#get_all_checklists
+        Get all Checklists by calling the API according to https://wekan.github.io/api/v7.42/#get_all_checklists
         :return: All Checklists
         """
         return self.list.board.client.fetch_json(f'/api/boards/{self.list.board.id}/cards/{self.id}/checklists')
 
-    def list_checklists(self, regex_filter='.*') -> list:
+    def list_checklists(self, regex_filter='.*') -> list[CardChecklist]:
         """
         List all (matching) checklists
         :param regex_filter: Regex filter that will be applied to the search.
@@ -109,16 +115,16 @@ class Card(WekanBase):
 
     def __get_all_comments(self) -> list:
         """
-        Get all Comments by calling the API according to https://wekan.github.io/api/v6.22/#get_all_comments
+        Get all Comments by calling the API according to https://wekan.github.io/api/v7.42/#get_all_comments
         :return: All Checklists
         """
         return self.list.board.client.fetch_json(f'/api/boards/{self.list.board.id}/cards/{self.id}/comments')
 
-    def list_comments(self, author_id=None) -> list:
+    def list_comments(self, author_id=None) -> list[CardComment]:
         """
-        List all (matching) checklists
+        List all (matching) comments
         :param author_id: author_id filter that will be applied to the search.
-        :return: list of checklists
+        :return: list of comments
         """
         all_comments = CardComment.from_list(parent_card=self, data=self.__get_all_comments())
         if author_id:
@@ -128,7 +134,7 @@ class Card(WekanBase):
 
     def delete(self) -> None:
         """
-        Delete the Card instance according to https://wekan.github.io/api/v6.22/#delete_card
+        Delete the Card instance according to https://wekan.github.io/api/v7.42/#delete_card
         :return: API Response as type dict containing the id of the deleted card
         """
         uri = f'/api/boards/{self.list.board.id}/lists/{self.list.id}/cards/{self.id}'
@@ -136,7 +142,7 @@ class Card(WekanBase):
 
     def add_checklist(self, title: str) -> CardChecklist:
         """
-        Create a new CardChecklist instance according to https://wekan.github.io/api/v6.22/#new_checklist
+        Create a new CardChecklist instance according to https://wekan.github.io/api/v7.42/#new_checklist
         :param title: Title of the new checklist.
         :return: Instance of class CardChecklist
         """
@@ -149,7 +155,7 @@ class Card(WekanBase):
 
     def add_comment(self, text: str) -> CardComment:
         """
-        Create a new CardChecklist instance according to https://wekan.github.io/api/v6.22/#new_comment
+        Create a new CardChecklist instance according to https://wekan.github.io/api/v7.42/#new_comment
         :param text: Text of the new comment.
         :return: Instance of class CardComment
         """
@@ -166,7 +172,7 @@ class Card(WekanBase):
              spent_time=None, is_overtime=None, custom_fields=None, members=None, new_swimlane=None) -> None:
         """
         Edit the current instance by sending a PUT Request to the API
-        according to https://wekan.github.io/api/v6.22/#edit_card
+        according to https://wekan.github.io/api/v7.42/#edit_card
         :param title: the new title of the card
         :param new_list: instance of class List of the new list (move operation)
         :param author_id: change the owner of the card
