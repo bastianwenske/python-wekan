@@ -21,7 +21,7 @@ class CardChecklist(WekanBase):
         self.createdAt = self.card.list.board.client.parse_iso_date(self.__raw_data['createdAt'])
         self.modified_at = self.card.list.board.client.parse_iso_date(self.__raw_data['modifiedAt'])
 
-    def list_checklists(self) -> list[CardChecklist]:
+    def list_checklists(self) -> list[CardChecklistItem]:
         """
         List all checklist items
         :return: list of checklist items
