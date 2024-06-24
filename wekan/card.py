@@ -68,6 +68,8 @@ class Card(WekanBase):
         try:
             if data['dueAt']:
                 self.due_at = self.list.board.client.parse_iso_date(data['dueAt'])
+            else:
+                self.due_at = None
         except KeyError:
             self.due_at = None
 
