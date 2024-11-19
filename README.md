@@ -7,6 +7,8 @@ Each WeKan object is represented by a corresponding python object.
 For further details about the [WeKan® API](https://wekan.github.io/api) consider the official documentation.
 
 ## Installation
+The project assumes that you are using a [currently-supported](https://devguide.python.org/versions/) version of Python, which is 3.9+ at the time of writing.
+
 ### From OS Packaging
 [![Packaging status](https://repology.org/badge/vertical-allrepos/python:wekan.svg?exclude_unsupported=1)](https://repology.org/project/python:wekan/versions)
 
