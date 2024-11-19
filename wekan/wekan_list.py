@@ -3,6 +3,7 @@ import typing
 if typing.TYPE_CHECKING:
 	from wekan.board import Board
 
+import logging
 import re
 
 from wekan.base import WekanBase
@@ -23,15 +24,20 @@ class WekanList(WekanBase):
         self.swimlane_id = data['swimlaneId']
         self.created_at = self.board.client.parse_iso_date(data['createdAt'])
         self.updated_at = self.board.client.parse_iso_date(data['updatedAt'])
-        self.sort = data['sort']
+        try:
+            self.sort = data['sort']
+        except Exception:
+            logging.exception("List lacks sort parameter! Is this a subtasks board? https://github.com/wekan/wekan/issues/5582")
+            logging.debug(list_id)
         self.wip_limit = data['wipLimit']
         self.color = data.get('color', '')
 
         try:
             data_cc = self.board.client.fetch_json(f'/api/boards/{self.board.id}/lists/{self.id}/cards_count')
             self.cards_count = data_cc['list_cards_count']
-        except:
-            print("Failed getting cards_count, instance possibly too old (stable snap?)")
+        except Exception:
+            logging.exception("Failed getting cards_count, instance possibly too old (stable snap?)")
+            logging.debug(list_id)
 
     def __repr__(self) -> str:
         return f"<WekanList (id: {self.id}, title: {self.title})>"
@@ -123,8 +129,9 @@ class WekanList(WekanBase):
         Delete the List instance.
         :return: None
         """
-        self.board.client.fetch_json(f'/api/boards/{self.board.id}/lists/{self.id}',
-                                     http_method="DELETE")
+        self.board.client.fetch_json(
+            f'/api/boards/{self.board.id}/lists/{self.id}',
+            http_method="DELETE")
 
     def create_card(self, title: str, description: str = "", members=None) -> WekanCard:
         """
@@ -143,6 +150,7 @@ class WekanList(WekanBase):
             'description': description,
             'swimlaneId': f'{self.board.id}'
         }
-        response = self.board.client.fetch_json(uri_path=f'/api/boards/{self.board.id}/lists/{self.id}/cards',
-                                                http_method="POST", payload=payload)
+        response = self.board.client.fetch_json(
+            uri_path=f'/api/boards/{self.board.id}/lists/{self.id}/cards',
+            http_method="POST", payload=payload)
         return WekanCard.from_dict(parent_list=self, data=response)
