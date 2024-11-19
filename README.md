@@ -7,6 +7,10 @@ Each WeKan object is represented by a corresponding python object.
 For further details about the [WeKan® API](https://wekan.github.io/api) consider the official documentation.
 
 ## Installation
+### From OS Packaging
+[![Packaging status](https://repology.org/badge/vertical-allrepos/python:wekan.svg?exclude_unsupported=1)](https://repology.org/project/python:wekan/versions)
+
+### Via pip
 ```bash
 pip install python-wekan
 ```
