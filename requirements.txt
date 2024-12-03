@@ -1,4 +1,4 @@
--i https://pypi.org/simple
+# -i https://pypi.org/simple
 certifi==2024.7.4
 charset-normalizer==3.3.2
 idna==3.7
