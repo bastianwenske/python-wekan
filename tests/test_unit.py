@@ -113,6 +113,7 @@ class TestBoardUnit(unittest.TestCase):
 class TestListAndCardUnit(unittest.TestCase):
     def setUp(self):
         self.mock_client = MagicMock(spec=WekanClient)
+        self.mock_client.user_id = 'test_user_id'
         self.mock_board = MagicMock(spec=Board)
         self.mock_board.client = self.mock_client
         self.mock_board.id = 'board1'
