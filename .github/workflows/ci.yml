@@ -35,17 +35,6 @@ jobs:
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    # The user registration (sign-up) via wekan api is not working currently.
-    # See also corresponding GitHub Issue: https://github.com/wekan/wekan/issues/4774.
-    # Therefore we have to disble the test. Without an active user, we can not test the api
-    # for local test, just create the user beforehand and pass the credentials to the WeKan Client
-    # according to the README.
-    # - name: Create docker environment for testing
-    #   run: docker-compose -f docker-compose.yml up -d
-    # - name: Test with pytest
-    #   run: |
-    #     while true ; do if curl -s --fail http://localhost:8080 >> /dev/null ; then break ; else sleep 1 ; fi ; done
-    #     pytest
-    - name: Stop containers
-      if: always()
-      run: docker-compose -f docker-compose.yml down
+    - name: Test with pytest
+      run: |
+        pytest tests/test_unit.py

@@ -1,13 +1,13 @@
 from __future__ import annotations
 import typing
 if typing.TYPE_CHECKING:
-	from wekan.card import Card
+	from wekan.card import WekanCard
 
 from wekan.base import WekanBase
 
 
 class CardComment(WekanBase):
-    def __init__(self, parent_card: Card, comment_id: str) -> None:
+    def __init__(self, parent_card: WekanCard, comment_id: str) -> None:
         """ Reference to a Wekan CardComment """
         super().__init__()
         self.card = parent_card
@@ -24,20 +24,20 @@ class CardComment(WekanBase):
         return f"<CardComment (id: {self.id}, text: {self.text})>"
 
     @classmethod
-    def from_dict(cls, parent_card: Card, data: dict) -> CardComment:
+    def from_dict(cls, parent_card: WekanCard, data: dict) -> CardComment:
         """
         Creates an instance of class CardComment by using the API-Response of CardComment GET.
-        :param parent_card: Instance of Class Card pointing to the Card of this Comment
+        :param parent_card: Instance of Class WekanCard pointing to the Card of this Comment
         :param data: Response of CardComment GET.
         :return: Instance of class CardComment
         """
         return cls(parent_card=parent_card, comment_id=data['_id'])
 
     @classmethod
-    def from_list(cls, parent_card: Card, data: list) -> list[CardComment]:
+    def from_list(cls, parent_card: WekanCard, data: list) -> list[CardComment]:
         """
         Wrapper around function from_dict to process multiple objects within one function call.
-        :param parent_card: Instance of Class Card pointing to the current Card of this Comment
+        :param parent_card: Instance of Class WekanCard pointing to the current Card of this Comment
         :param data: Response of CardComment GET.
         :return: Instances of class CardComment
         """

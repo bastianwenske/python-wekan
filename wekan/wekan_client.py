@@ -7,10 +7,22 @@ import requests
 from dateutil import parser
 
 from wekan.board import Board
-from wekan.user import User
+from wekan.user import WekanUser
 
 
-class UsernameAlreadyExists(Exception):
+class WekanAPIError(Exception):
+    """Base exception for Wekan API errors."""
+    def __init__(self, message: str, status_code: int = None):
+        self.message = message
+        self.status_code = status_code
+
+class WekanNotFoundError(WekanAPIError):
+    """Resource not found (404)."""
+
+class WekanAuthenticationError(WekanAPIError):
+    """Authentication failed (401)."""
+
+class UsernameAlreadyExists(WekanAPIError):
     pass
 
 
@@ -55,17 +67,34 @@ class WekanClient(object):
         """
         Get all users by calling the API according to https://wekan.github.io/api/v7.42/#get_all_users
         IMPORTANT: Only the admin user (the first user) can call this REST API Endpoint.
-        :return: List of instances of class User
+        :return: List of instances of class WekanUser
         """
         return self.fetch_json('/api/users')
 
-    def list_users(self, regex_filter='.*') -> list[User]:
+    def get_users(self, regex_filter='.*') -> list[WekanUser]:
         """
-        List all (matching) users
+        Get all (matching) users
         :return: list of users
         """
-        all_users = User.from_list(client=self, data=self.__get_all_users())
+        all_users = WekanUser.from_list(client=self, data=self.__get_all_users())
         return [user for user in all_users if re.search(regex_filter, user.username)]
+
+    def get_current_user(self) -> WekanUser:
+        """Get current user details."""
+        return WekanUser(client=self, user_id=self.user_id)
+
+    def find_user(self, username: str = None, email: str = None) -> WekanUser:
+        """Find user by username or email."""
+        if not username and not email:
+            raise ValueError("Either username or email must be provided.")
+
+        users = self.get_users()
+        for user in users:
+            if username and user.username == username:
+                return user
+            if email and email in [e['address'] for e in user.emails]:
+                return user
+        return None
 
     def __get_api_token(self):
         """
@@ -122,21 +151,36 @@ class WekanClient(object):
 
         response = requests.request(method=http_method, url=url, headers=headers, data=json.dumps(payload))
         try:
-            if response.status_code not in (200, 201):
-                if "Username already exists" in response.json()['reason']:
-                    raise UsernameAlreadyExists
-                else:
-                    raise Exception(f'Error while talking to API. Please see HTTP-Response: \n {response.text}')
-        except requests.exceptions.JSONDecodeError:
+            response.raise_for_status()
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code == 401:
+                raise WekanAuthenticationError(f"Authentication failed: {e.response.text}", e.response.status_code)
+            if e.response.status_code == 404:
+                raise WekanNotFoundError(f"Resource not found: {e.response.text}", e.response.status_code)
+
+            # Special case for username exists
+            try:
+                if "Username already exists" in e.response.json().get('reason', ''):
+                    raise UsernameAlreadyExists("Username already exists")
+            except json.JSONDecodeError:
+                pass # Not a JSON response, fall through to generic error
+
+            raise WekanAPIError(f'API error: {e.response.text}', status_code=e.response.status_code)
+
+        try:
+            return response.json()
+        except json.JSONDecodeError:
+            # Handle cases where API returns non-JSON success response (e.g. DELETE calls)
+            if response.status_code in (200, 201, 204) and not response.text:
+                return {} # Return empty dict for success with no content
+
             if response.status_code == 500 and http_method == "DELETE":
                 # There are errors when deleting some resources via api e.g.
                 # delete cards responds with "Internal Server Error" and
                 # status 500 even if the card has been deleted successfully
-                return response.text
-            else:
-                raise Exception(f'Could not decode the API response. Please see HTTP-Response: \n {response.text}')
+                return response.text # Keep this legacy behavior for now
 
-        return response.json()
+            raise WekanAPIError(f'Could not decode the API response. Please see HTTP-Response: \n {response.text}')
 
     def add_board(self, title: str, color: str, owner=None,
                   is_admin=True, is_active=True, is_no_comments=False,
@@ -167,13 +211,13 @@ class WekanClient(object):
         response = self.fetch_json(uri_path='/api/boards', http_method="POST", payload=payload)
         return Board.from_dict(client=self, data=response)
 
-    def add_user(self, username: str, email: str, password: str) -> User:
+    def add_user(self, username: str, email: str, password: str) -> WekanUser:
         """
         Creates a new board according to https://wekan.github.io/api/v7.42/#new_user
         :param username: Username of the new user.
         :param email: E-Mail of the new user.
         :param password: Passwort of the new user.
-        :return: Instance of class User
+        :return: Instance of class WekanUser
         """
         payload = {
             'username': username,
@@ -181,4 +225,4 @@ class WekanClient(object):
             'password': password
         }
         response = self.fetch_json(uri_path='/api/users', http_method="POST", payload=payload)
-        return User.from_dict(client=self, data=response)
+        return WekanUser.from_dict(client=self, data=response)

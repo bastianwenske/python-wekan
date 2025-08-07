@@ -6,11 +6,11 @@ if typing.TYPE_CHECKING:
 import re
 
 from wekan.base import WekanBase
-from wekan.card import Card
+from wekan.card import WekanCard
 from wekan.swimlane import Swimlane
 
 
-class List(WekanBase):
+class WekanList(WekanBase):
     def __init__(self, parent_board: Board, list_id: str) -> None:
         """ Reference to a Wekan List. """
         super().__init__()
@@ -34,7 +34,7 @@ class List(WekanBase):
             print("Failed getting cards_count, instance possibly too old (stable snap?)")
 
     def __repr__(self) -> str:
-        return f"<List (id: {self.id}, title: {self.title})>"
+        return f"<WekanList (id: {self.id}, title: {self.title})>"
 
     def __get_all_cards_on_list(self) -> list:
         """
@@ -43,46 +43,80 @@ class List(WekanBase):
         """
         return self.board.client.fetch_json(f'/api/boards/{self.board.id}/lists/{self.id}/cards')
 
-    def list_cards(self, regex_filter='.*') -> list[Card]:
+    def get_cards(self, regex_filter='.*') -> list[WekanCard]:
         """
-        List all (matching) cards
+        Get all (matching) cards
         :param regex_filter: Regex filter that will be applied to the search.
         :return: list of cards
         """
-        all_cards = Card.from_list(parent_list=self, data=self.__get_all_cards_on_list())
+        all_cards = WekanCard.from_list(parent_list=self, data=self.__get_all_cards_on_list())
         return [card for card in all_cards if re.search(regex_filter, card.title)]
 
-    def get_card_by_id(self, card_id: str) -> Card:
+    def get_card_by_id(self, card_id: str) -> WekanCard:
         """
         Get a single Card by id
         :param card_id: id of the card to fetch data from
-        :return: Instance of type Card
+        :return: Instance of type WekanCard
         """
         response = self.board.client.fetch_json(f'/api/boards/{self.board.id}/lists/{self.id}/cards/{card_id}')
-        return Card.from_dict(parent_list=self, data=response)
+        return WekanCard.from_dict(parent_list=self, data=response)
 
     @classmethod
-    def from_dict(cls, parent_board: Board, data: dict) -> List:
+    def from_dict(cls, parent_board: Board, data: dict) -> WekanList:
         """
-        Creates an instance of class List by using the API-Response of List creation.
+        Creates an instance of class WekanList by using the API-Response of List creation.
         :param parent_board: Instance of Class Board pointing to the current Board
         :param data: Response of List creation.
-        :return: Instance of class List
+        :return: Instance of class WekanList
         """
         return cls(parent_board=parent_board, list_id=data['_id'])
 
     @classmethod
-    def from_list(cls, parent_board: Board, data: list) -> list[List]:
+    def from_list(cls, parent_board: Board, data: list) -> list[WekanList]:
         """
         Wrapper around function from_dict to process multiple objects within one function call.
         :param parent_board: Instance of Class Board pointing to the current Board
         :param data: Response of List creation.
-        :return: Instances of class List
+        :return: Instances of class WekanList
         """
         instances = []
         for wekan_list in data:
             instances.append(cls(parent_board=parent_board, list_id=wekan_list['_id']))
         return instances
+
+    def update(self, title: str = None, position: int = None) -> WekanList:
+        """Update list properties."""
+        payload = {}
+        if title is not None:
+            payload['title'] = title
+        if position is not None:
+            payload['sort'] = position
+
+        if payload:
+            self.board.client.fetch_json(
+                f'/api/boards/{self.board.id}/lists/{self.id}',
+                http_method='PUT',
+                payload=payload
+            )
+            # Refresh data
+            self.__init__(self.board, self.id)
+        return self
+
+    def archive(self) -> None:
+        """Archive this list."""
+        self.board.client.fetch_json(
+            f'/api/boards/{self.board.id}/lists/{self.id}/archive',
+            http_method='POST'
+        )
+        self.archived = True
+
+    def restore(self) -> None:
+        """Restore this list from archive."""
+        self.board.client.fetch_json(
+            f'/api/boards/{self.board.id}/lists/{self.id}/unarchive',
+            http_method='POST'
+        )
+        self.archived = False
 
     def delete(self) -> None:
         """
@@ -92,14 +126,13 @@ class List(WekanBase):
         self.board.client.fetch_json(f'/api/boards/{self.board.id}/lists/{self.id}',
                                      http_method="DELETE")
 
-    def add_card(self, title: str, swimlane: Swimlane, description: str = "", members=None) -> Card:
+    def create_card(self, title: str, description: str = "", members=None) -> WekanCard:
         """
-        Creates a new card instance according to https://wekan.github.io/api/v7.42/#new_card
+        Creates a new card instance.
         :param title: Title of the new card.
-        :param swimlane: Swimlane ID of the new card.
-        :param members: Members of the new card.
         :param description: Description of the new card.
-        :return: Instance of type Card
+        :param members: Members of the new card.
+        :return: Instance of type WekanCard
         """
         if members is None:
             members = []
@@ -108,8 +141,8 @@ class List(WekanBase):
             'authorId': self.board.client.user_id,
             'members': members,
             'description': description,
-            'swimlaneId': swimlane.id
+            'swimlaneId': f'{self.board.id}'
         }
         response = self.board.client.fetch_json(uri_path=f'/api/boards/{self.board.id}/lists/{self.id}/cards',
                                                 http_method="POST", payload=payload)
-        return Card.from_dict(parent_list=self, data=response)
+        return WekanCard.from_dict(parent_list=self, data=response)
