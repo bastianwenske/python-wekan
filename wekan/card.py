@@ -1,9 +1,9 @@
 from __future__ import annotations
 import typing
 if typing.TYPE_CHECKING:
-	from wekan.wekan_list import List
+	from wekan.wekan_list import WekanList
 
-from datetime import date
+from datetime import date, datetime
 import re
 
 from wekan.base import WekanBase
@@ -11,8 +11,8 @@ from wekan.card_checklist import CardChecklist
 from wekan.card_comment import CardComment
 
 
-class Card(WekanBase):
-    def __init__(self, parent_list: List, card_id: str) -> None:
+class WekanCard(WekanBase):
+    def __init__(self, parent_list: WekanList, card_id: str) -> None:
         """ Reference to a Wekan Card """
         super().__init__()
         self.list = parent_list
@@ -74,25 +74,52 @@ class Card(WekanBase):
             self.due_at = None
 
     def __repr__(self) -> str:
-        return f"<Card (id: {self.id}, title: {self.title})>"
+        return f"<WekanCard (id: {self.id}, title: {self.title})>"
+
+    def update(self, title: str = None, description: str = None) -> WekanCard:
+        """Update card properties."""
+        self.edit(title=title, description=description)
+        self.__init__(self.list, self.id)
+        return self
+
+    def move_to_list(self, target_list: WekanList) -> WekanCard:
+        """Move card to different list."""
+        self.edit(new_list=target_list)
+        self.__init__(self.list, self.id)
+        return self
+
+    def set_due_date(self, due_date: datetime) -> WekanCard:
+        """Set card due date."""
+        self.edit(due_at=due_date)
+        self.__init__(self.list, self.id)
+        return self
+
+    def assign_member(self, user_id: str) -> WekanCard:
+        """Assign member to card."""
+        member_ids = [member for member in self.members]
+        if user_id not in member_ids:
+            member_ids.append(user_id)
+        self.edit(members=member_ids)
+        self.__init__(self.list, self.id)
+        return self
 
     @classmethod
-    def from_dict(cls, parent_list: List, data: dict) -> Card:
+    def from_dict(cls, parent_list: WekanList, data: dict) -> WekanCard:
         """
-        Creates an instance of class Card by using the API-Response of Card GET.
-        :param parent_list: Instance of Class List pointing to the current Board
+        Creates an instance of class WekanCard by using the API-Response of Card GET.
+        :param parent_list: Instance of Class WekanList pointing to the current Board
         :param data: Response of Card GET.
-        :return: Instance of class Card
+        :return: Instance of class WekanCard
         """
         return cls(parent_list=parent_list, card_id=data['_id'])
 
     @classmethod
-    def from_list(cls, parent_list: List, data: list) -> list[Card]:
+    def from_list(cls, parent_list: WekanList, data: list) -> list[WekanCard]:
         """
         Wrapper around function from_dict to process multiple objects within one function call.
-        :param parent_list: Instance of Class List pointing to the current Board
+        :param parent_list: Instance of Class WekanList pointing to the current Board
         :param data: Response of Card GET.
-        :return: Instances of class Card
+        :return: Instances of class WekanCard
         """
         instances = []
         for card in data:
@@ -106,9 +133,9 @@ class Card(WekanBase):
         """
         return self.list.board.client.fetch_json(f'/api/boards/{self.list.board.id}/cards/{self.id}/checklists')
 
-    def list_checklists(self, regex_filter='.*') -> list[CardChecklist]:
+    def get_checklists(self, regex_filter='.*') -> list[CardChecklist]:
         """
-        List all (matching) checklists
+        Get all (matching) checklists
         :param regex_filter: Regex filter that will be applied to the search.
         :return: list of checklists
         """
@@ -122,17 +149,9 @@ class Card(WekanBase):
         """
         return self.list.board.client.fetch_json(f'/api/boards/{self.list.board.id}/cards/{self.id}/comments')
 
-    def list_comments(self, author_id=None) -> list[CardComment]:
-        """
-        List all (matching) comments
-        :param author_id: author_id filter that will be applied to the search.
-        :return: list of comments
-        """
-        all_comments = CardComment.from_list(parent_card=self, data=self.__get_all_comments())
-        if author_id:
-            return [comment for comment in all_comments if author_id == comment.author_id]
-        else:
-            return all_comments
+    def get_comments(self) -> list[dict]:
+        """Get all card comments."""
+        return self.__get_all_comments()
 
     def delete(self) -> None:
         """
@@ -155,11 +174,11 @@ class Card(WekanBase):
         response = self.list.board.client.fetch_json(uri_path=uri, http_method="POST", payload=payload)
         return CardChecklist.from_dict(parent_card=self, data=response)
 
-    def add_comment(self, text: str) -> CardComment:
+    def add_comment(self, text: str) -> dict:
         """
-        Create a new CardChecklist instance according to https://wekan.github.io/api/v7.42/#new_comment
+        Add comment to card.
         :param text: Text of the new comment.
-        :return: Instance of class CardComment
+        :return: dict
         """
         payload = {
             "authorId": self.list.board.client.user_id,
@@ -167,7 +186,7 @@ class Card(WekanBase):
         }
         uri = f'/api/boards/{self.list.board.id}/cards/{self.id}/comments'
         response = self.list.board.client.fetch_json(uri, http_method="POST", payload=payload)
-        return CardComment.from_dict(parent_card=self, data=response)
+        return response
 
     def edit(self, title=None, new_list=None, author_id=None, description=None, color=None, label_ids=None,
              requested_by=None, assigned_by=None, received_at=None, start_at=None, due_at=None, end_at=None,
@@ -176,7 +195,7 @@ class Card(WekanBase):
         Edit the current instance by sending a PUT Request to the API
         according to https://wekan.github.io/api/v7.42/#edit_card
         :param title: the new title of the card
-        :param new_list: instance of class List of the new list (move operation)
+        :param new_list: instance of class WekanList of the new list (move operation)
         :param author_id: change the owner of the card
         :param description: the new description of the card
         :param color: the new color of the card

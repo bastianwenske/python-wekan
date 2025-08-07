@@ -4,8 +4,9 @@ if typing.TYPE_CHECKING:
 	from wekan.wekan_client import WekanClient
 
 from wekan.base import WekanBase
+from wekan.board import Board
 
-class User(WekanBase):
+class WekanUser(WekanBase):
     def __init__(self, client: WekanClient, user_id: str) -> None:
         """ Reference to a Wekan User """
         super().__init__()
@@ -28,25 +29,30 @@ class User(WekanBase):
         self.is_admin = data.get('isAdmin', False)
 
     def __repr__(self) -> str:
-        return f"<User (id: {self.id}, username: {self.username})>"
+        return f"<WekanUser (id: {self.id}, username: {self.username})>"
+
+    def get_boards(self) -> list[Board]:
+        """Get boards accessible to this user."""
+        board_data = self.client.fetch_json(f'/api/users/{self.id}/boards')
+        return [Board(client=self.client, board_id=b['_id']) for b in board_data]
 
     @classmethod
-    def from_dict(cls, client: WekanClient, data: dict) -> User:
+    def from_dict(cls, client: WekanClient, data: dict) -> WekanUser:
         """
-        Creates an instance of class User by using the API-Response of User GET.
+        Creates an instance of class WekanUser by using the API-Response of User GET.
         :param client: Instance of Class WekanClient pointing to the Client
         :param data: Response of User GET.
-        :return: Instance of class User
+        :return: Instance of class WekanUser
         """
         return cls(client=client, user_id=data['_id'])
 
     @classmethod
-    def from_list(cls, client: WekanClient, data: list) -> list[User]:
+    def from_list(cls, client: WekanClient, data: list) -> list[WekanUser]:
         """
         Wrapper around function from_dict to process multiple objects within one function call.
         :param client: Instance of Class WekanClient pointing to the Client
         :param data: Responses of User GET.
-        :return: Instances of class User
+        :return: Instances of class WekanUser
         """
         instances = []
         for user in data:
