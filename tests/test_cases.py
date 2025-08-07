@@ -4,13 +4,13 @@ import requests
 
 from wekan import WekanClient
 from wekan import Board
-from wekan import User
-from wekan import List
+from wekan.user import WekanUser
+from wekan.wekan_list import WekanList
 from wekan import Swimlane
 from wekan import Integration
-from wekan import Card
-from wekan import CardChecklist
-from wekan import CardComment
+from wekan.card import WekanCard
+from wekan.card_checklist import CardChecklist
+from wekan.card_comment import CardComment
 from wekan import Customfield
 from faker import Faker
 import random
@@ -46,11 +46,11 @@ def test_wekan_client():
     assert isinstance(api, WekanClient)
 
 
-def test_list_user():
-    all_users = api.list_users()
+def test_get_users():
+    all_users = api.get_users()
     user = all_users[0]
     assert isinstance(all_users, list)
-    assert isinstance(user, User)
+    assert isinstance(user, WekanUser)
     assert isinstance(user.username, str)
     assert len(user.id) == wekan_id_length
 
@@ -60,7 +60,7 @@ def test_add_user():
     new_user = api.add_user(username=fake.email(),
                             email=fake.email(),
                             password=fake.password(length=12))
-    assert isinstance(new_user, User)
+    assert isinstance(new_user, WekanUser)
     assert isinstance(new_user.modified_at, date)
     assert len(new_user.id) == wekan_id_length
 
@@ -85,20 +85,20 @@ def test_list_boards():
     assert len(board.id) == wekan_id_length
 
 
-def test_add_list():
+def test_create_list():
     global new_list  # this is global for being able to use the list in other tests
-    new_list = new_board.add_list(title=fake.last_name())
-    assert isinstance(new_list, List)
+    new_list = new_board.create_list(title=fake.last_name())
+    assert isinstance(new_list, WekanList)
     assert isinstance(new_list.sort, int)
     assert isinstance(new_list.created_at, date)
     assert len(new_list.id) == wekan_id_length
 
 
-def test_list_lists():
-    all_lists = new_board.list_lists()
+def test_get_lists():
+    all_lists = new_board.get_lists()
     wekan_list = all_lists[0]
     assert isinstance(all_lists, list)
-    assert isinstance(wekan_list, List)
+    assert isinstance(wekan_list, WekanList)
     assert isinstance(wekan_list.cards_count, int)
     assert len(wekan_list.id) == wekan_id_length
 
@@ -205,13 +205,12 @@ def test_edit_custom_field():
     assert updated_field.show_on_card == show_on_card
 
 
-def test_add_card():
+def test_create_card():
     global new_card  # this is global for being able to use the card in other tests
-    new_card = new_list.add_card(title=f"{fake.name()}'s Card",
-                                 swimlane=new_swimlane,
+    new_card = new_list.create_card(title=f"{fake.name()}'s Card",
                                  members=[new_user.id],
                                  description=fake.text(max_nb_chars=500))
-    assert isinstance(new_card, Card)
+    assert isinstance(new_card, WekanCard)
     assert isinstance(new_card.archived, bool)
     assert isinstance(new_card.sort, int)
     assert isinstance(new_card.modified_at, date)
@@ -271,19 +270,16 @@ def test_add_card_comment():
     global new_comment  # this is global for being able to use the comment in other tests
     text = fake.text(max_nb_chars=100)
     new_comment = new_card.add_comment(text=text)
-    assert isinstance(new_comment, CardComment)
-    assert isinstance(new_comment.modified_at, date)
-    assert isinstance(new_comment.text, str)
-    assert len(new_comment.id) == wekan_id_length
-    assert new_comment.text == text
+    assert isinstance(new_comment, dict)
+    assert new_comment['cardId'] == new_card.id
 
 
-def test_list_card_comments():
-    all_comments = new_card.list_comments()
+def test_get_card_comments():
+    all_comments = new_card.get_comments()
     comment = all_comments[0]
     assert isinstance(all_comments, list)
-    assert isinstance(comment, CardComment)
-    assert len(comment.id) == wekan_id_length
+    assert isinstance(comment, dict)
+    assert len(comment['_id']) == wekan_id_length
 
 
 def test_eq():
@@ -294,18 +290,20 @@ def test_eq():
 
 
 def test_delete_card_comment():
-    new_comment.delete()
-    assert new_comment.id not in [comment.id for comment in new_card.list_comments()]
+    # Re-fetch the comment as a CardComment object to delete it
+    comment_to_delete = CardComment(parent_card=new_card, comment_id=new_comment['_id'])
+    comment_to_delete.delete()
+    assert new_comment['_id'] not in [c['_id'] for c in new_card.get_comments()]
 
 
 def test_delete_card_checklist():
     new_checklist.delete()
-    assert new_checklist.id not in [checklist.id for checklist in new_card.list_checklists()]
+    assert new_checklist.id not in [checklist.id for checklist in new_card.get_checklists()]
 
 
 def test_delete_card():
     new_card.delete()
-    assert new_card.id not in [card.id for card in new_list.list_cards()]
+    assert new_card.id not in [card.id for card in new_list.get_cards()]
 
 
 def test_delete_swimlane():
@@ -315,7 +313,7 @@ def test_delete_swimlane():
 
 def test_delete_list():
     new_list.delete()
-    assert new_list.id not in [wlist.id for wlist in new_board.list_lists()]
+    assert new_list.id not in [wlist.id for wlist in new_board.get_lists()]
 
 
 def test_delete_integration_activities():
@@ -341,4 +339,4 @@ def test_delete_board():
 
 def test_delete_user():
     new_user.delete()
-    assert new_user.id not in [user.id for user in api.list_users()]
+    assert new_user.id not in [user.id for user in api.get_users()]

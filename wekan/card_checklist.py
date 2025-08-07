@@ -1,14 +1,14 @@
 from __future__ import annotations
 import typing
 if typing.TYPE_CHECKING:
-	from wekan.card import Card
+	from wekan.card import WekanCard
 
 from wekan.base import WekanBase
 from wekan.card_checklist_item import CardChecklistItem
 
 
 class CardChecklist(WekanBase):
-    def __init__(self, parent_card: Card, checklist_id: str) -> None:
+    def __init__(self, parent_card: WekanCard, checklist_id: str) -> None:
         """ Reference to a Wekan Card Checklist """
         super().__init__()
         self.card = parent_card
@@ -32,20 +32,20 @@ class CardChecklist(WekanBase):
         return f"<CardChecklist (id: {self.id}, title: {self.title})>"
 
     @classmethod
-    def from_dict(cls, parent_card: Card, data: dict) -> CardChecklist:
+    def from_dict(cls, parent_card: WekanCard, data: dict) -> CardChecklist:
         """
         Creates an instance of class CardChecklist by using the API-Response of CardChecklist GET.
-        :param parent_card: Instance of Class Card pointing to the current Card of this Checklist
+        :param parent_card: Instance of Class WekanCard pointing to the current Card of this Checklist
         :param data: Response of CardChecklist GET.
         :return: Instance of class CardChecklist
         """
         return cls(parent_card=parent_card, checklist_id=data['_id'])
 
     @classmethod
-    def from_list(cls, parent_card: Card, data: list) -> list[CardChecklist]:
+    def from_list(cls, parent_card: WekanCard, data: list) -> list[CardChecklist]:
         """
         Wrapper around function from_dict to process multiple objects within one function call.
-        :param parent_card: Instance of Class Card pointing to the current Card of this Checklist
+        :param parent_card: Instance of Class WekanCard pointing to the current Card of this Checklist
         :param data: Response of CardChecklist GET.
         :return: Instances of class CardChecklist
         """

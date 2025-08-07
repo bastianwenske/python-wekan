@@ -10,7 +10,7 @@ from wekan.customfield import Customfield
 from wekan.integration import Integration
 from wekan.label import Label
 from wekan.swimlane import Swimlane
-from wekan.wekan_list import List
+from wekan.wekan_list import WekanList
 
 
 class Board(WekanBase):
@@ -99,22 +99,22 @@ class Board(WekanBase):
         all_custom_fields = Customfield.from_list(parent_board=self, data=self.__get_all_custom_fields())
         return [field for field in all_custom_fields if re.search(regex_filter, field.name)]
 
-    def list_labels(self, regex_filter='.*') -> list[Label]:
+    def get_labels(self, regex_filter='.*') -> list[Label]:
         """
-        List all (matching) labels
+        Get all (matching) labels
         :param regex_filter: Regex filter that will be applied to the search.
         :return: list of labels
         """
         all_labels = Label.from_list(parent_board=self, data=self.__raw_data.get('labels', []))
         return [label for label in all_labels if re.search(regex_filter, label.name)]
 
-    def list_lists(self, regex_filter='.*') -> list[List]:
+    def get_lists(self, regex_filter='.*') -> list[WekanList]:
         """
-        List all (matching) labels
+        Get all (matching) lists
         :param regex_filter: Regex filter that will be applied to the search.
         :return: list of lists
         """
-        all_lists = List.from_list(parent_board=self, data=self.__get_all_lists())
+        all_lists = WekanList.from_list(parent_board=self, data=self.__get_all_lists())
         return [w_list for w_list in all_lists if re.search(regex_filter, w_list.title)]
 
     def list_swimlanes(self, regex_filter='.*') -> list[Swimlane]:
@@ -144,14 +144,14 @@ class Board(WekanBase):
         response = self.client.fetch_json(f'/api/boards/{self.id}/swimlanes/{swimlane_id}')
         return Swimlane.from_dict(parent_board=self, data=response)
 
-    def get_list_by_id(self, list_id: str) -> List:
+    def get_list_by_id(self, list_id: str) -> WekanList:
         """
         Get a single list by id
         :param list_id: id of the list to fetch data from
-        :return: Instance of type List
+        :return: Instance of type WekanList
         """
         response = self.client.fetch_json(f'/api/boards/{self.id}/lists/{list_id}')
-        return List.from_dict(parent_board=self, data=response)
+        return WekanList.from_dict(parent_board=self, data=response)
 
     def get_integration_by_id(self, integration_id: str) -> Integration:
         """
@@ -199,16 +199,19 @@ class Board(WekanBase):
         """
         return self.client.fetch_json(f'/api/boards/{self.id}/integrations')
 
-    def add_list(self, title: str) -> List:
+    def create_list(self, title: str, position: int = None) -> WekanList:
         """
-        Creates a new list instance according to https://wekan.github.io/api/v7.42/#new_list
+        Creates a new list instance.
         :param title: Name of the new list
-        :return: Instance of Class List
+        :param position: The position of the list in the board
+        :return: Instance of Class WekanList
         """
         payload = {"title": title}
+        if position:
+            payload['sort'] = position
         response = self.client.fetch_json(uri_path=f'/api/boards/{self.id}/lists',
                                           http_method="POST", payload=payload)
-        return List.from_dict(parent_board=self, data=response)
+        return WekanList.from_dict(parent_board=self, data=response)
 
     def add_swimlane(self, title: str) -> Swimlane:
         """
@@ -270,6 +273,40 @@ class Board(WekanBase):
         """
         self.client.fetch_json(f'/api/boards/{self.id}', http_method="DELETE")
 
+    def update(self, title: str = None, description: str = None, color: str = None, permission: str = None) -> Board:
+        """
+        Update board properties.
+        """
+        payload = {}
+        if title:
+            payload['title'] = title
+        if description:
+            payload['description'] = description
+        if color:
+            payload['color'] = color
+        if permission:
+            payload['permission'] = permission
+
+        if payload:
+            self.client.fetch_json(f'/api/boards/{self.id}', http_method="PUT", payload=payload)
+            # Refresh data
+            self.__init__(self.client, self.id)
+        return self
+
+    def archive(self) -> None:
+        """
+        Archive this board.
+        """
+        self.client.fetch_json(f'/api/boards/{self.id}/archive', http_method="POST")
+        self.archived = True
+
+    def restore(self) -> None:
+        """
+        Restore this board from archive.
+        """
+        self.client.fetch_json(f'/api/boards/{self.id}/restore', http_method="POST")
+        self.archived = False
+
     def export(self) -> dict:
         """
         Export the instance Board according to https://wekan.github.io/api/v7.42/#export
@@ -277,31 +314,40 @@ class Board(WekanBase):
         """
         return self.client.fetch_json(f'/api/boards/{self.id}/export')
 
-    def add_label(self):
+    def get_members(self) -> list:
+        """
+        Get board members.
+        """
+        return self.client.fetch_json(f'/api/boards/{self.id}/members')
+
+    def add_label(self, name: str, color: str) -> dict:
         """
         Create a new Label instance according to https://wekan.github.io/api/v7.42/#add_board_label
-        Currently, there is a problem when api handles the request:
-        Api docs do not match with actual behaviour.
-        see also: https://wekan.github.io/api/v7.42/?shell#add_board_label
         """
-        raise NotImplementedError
+        payload = {
+            "name": name,
+            "color": color
+        }
+        return self.client.fetch_json(f'/api/boards/{self.id}/labels', http_method="POST", payload=payload)
 
-    def add_member(self, user_id: str, is_admin: bool, is_no_comments: bool, is_comments_only: bool) -> None:
+    def add_member(self, user_id: str, role: str = "normal") -> dict:
         """
-        Add a member to a board according to https://wekan.github.io/api/v7.42/#add_board_member
+        Add member to board.
         :param user_id: ID of user to add as member to the board.
-        :param is_admin: Defines if the user an admin of the board
-        :param is_no_comments: Defines if user is allowed to comment (only)
-        :param is_comments_only: Defines if user is allowed to comment (only)
-        :return: None
+        :param role: Role of the user. Can be "admin", "normal", "no-comments", "comment-only".
         """
+        is_admin = role == "admin"
+        # is_normal = role == "normal"  # Not a real flag in the API
+        is_no_comments = role == "no-comments"
+        is_comment_only = role == "comment-only"
+
         payload = {
             "action": "add",
             "isAdmin": is_admin,
             "isNoComments": is_no_comments,
-            "isCommentOnly": is_comments_only
+            "isCommentOnly": is_comment_only
         }
-        self.client.fetch_json(uri_path=f'/api/boards/{self.id}/members/{user_id}/add',
+        return self.client.fetch_json(uri_path=f'/api/boards/{self.id}/members/{user_id}/add',
                                http_method="POST", payload=payload)
 
     def remove_member(self, user_id: str) -> None:
