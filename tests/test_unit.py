@@ -2,6 +2,8 @@ import unittest
 from unittest.mock import MagicMock, patch
 from wekan.wekan_client import WekanClient
 from wekan.board import Board
+from wekan.wekan_list import WekanList
+from wekan.card import WekanCard
 
 class TestBoardUnit(unittest.TestCase):
 
