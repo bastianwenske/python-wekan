@@ -1,0 +1,39 @@
+[project]
+    name = 'python-wekan'
+    version = "0.3.1"
+    description = "This is a python client for interacting with the WeKan® REST-API"
+    readme = "README.md"
+    license = { text = "BSD 3-Clause License" }
+    # Change the version for the tools below too when bumping up
+    requires-python = ">=3.9"
+    classifiers = [
+        "Programming Language :: Python :: 3",
+        "Typing :: Typed",
+    ]
+    authors = [
+      {name = "Bastian Wenske"},
+    ]
+    dynamic = ["dependencies"]
+    keywords = ["python"]
+
+[project.urls]
+    homepage = 'https://github.com/bastianwenske/python-wekan'
+
+[build-system]
+    requires = ["setuptools>=75.3", "setuptools_scm"]
+    build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+    packages = [
+        "tests",
+        "wekan",
+    ]
+
+[tool.setuptools.dynamic]
+    dependencies = {file = "requirements.txt"}
+
+[tool.pyright]
+    pythonVersion = "3.9"
+
+#    long_description_content_type="text/markdown",
+#    long_description=open('README.md').read()
