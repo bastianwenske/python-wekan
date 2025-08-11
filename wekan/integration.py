@@ -1,25 +1,29 @@
 from __future__ import annotations
+
 import typing
+
 if typing.TYPE_CHECKING:
-	from wekan.board import Board
+    from wekan.board import Board
 
 from wekan.base import WekanBase
 
 
 class Integration(WekanBase):
     def __init__(self, parent_board: Board, integration_id: str) -> None:
-        """ Reference to a Wekan Integration """
+        """Reference to a Wekan Integration"""
         super().__init__()
         self.board = parent_board
         self.id = integration_id
-        data = self.board.client.fetch_json(f'/api/boards/{self.board.id}/integrations/{self.id}')
-        self.title = data.get('title', '')
-        self.url = data['url']
-        self.enabled = data['enabled']
-        self.user_id = data['userId']
-        self.activities = data['activities']
-        self.created_at = self.board.client.parse_iso_date(data['createdAt'])
-        self.modified_at = self.board.client.parse_iso_date(data['modifiedAt'])
+        data = self.board.client.fetch_json(
+            f"/api/boards/{self.board.id}/integrations/{self.id}"
+        )
+        self.title = data.get("title", "")
+        self.url = data["url"]
+        self.enabled = data["enabled"]
+        self.user_id = data["userId"]
+        self.activities = data["activities"]
+        self.created_at = self.board.client.parse_iso_date(data["createdAt"])
+        self.modified_at = self.board.client.parse_iso_date(data["modifiedAt"])
 
     def __repr__(self) -> str:
         return f"<Integration (id: {self.id}, title: {self.title})>"
@@ -32,7 +36,7 @@ class Integration(WekanBase):
         :param data: Response of Integration creation.
         :return: Instance of class Integration
         """
-        return cls(parent_board=parent_board, integration_id=data['_id'])
+        return cls(parent_board=parent_board, integration_id=data["_id"])
 
     @classmethod
     def from_list(cls, parent_board: Board, data: list) -> list[Integration]:
@@ -44,7 +48,9 @@ class Integration(WekanBase):
         """
         instances = []
         for integration in data:
-            instances.append(cls(parent_board=parent_board, integration_id=integration['_id']))
+            instances.append(
+                cls(parent_board=parent_board, integration_id=integration["_id"])
+            )
         return instances
 
     def delete(self) -> None:
@@ -52,21 +58,25 @@ class Integration(WekanBase):
         Delete the Integration instance according to https://wekan.github.io/api/v7.42/#delete_integration
         :return: None
         """
-        self.board.client.fetch_json(f'/api/boards/{self.board.id}/integrations/{self.id}', http_method="DELETE")
+        self.board.client.fetch_json(
+            f"/api/boards/{self.board.id}/integrations/{self.id}", http_method="DELETE"
+        )
 
     def delete_activities(self, activities: list) -> None:
         """
         Delete all subscribed activities according to https://wekan.github.io/api/v7.42/#delete_integration_activities
         :return: None
         """
-        payload = {
-            "activities": activities
-        }
-        self.board.client.fetch_json(f'/api/boards/{self.board.id}/integrations/{self.id}/activities',
-                                     payload=payload,
-                                     http_method="DELETE")
+        payload = {"activities": activities}
+        self.board.client.fetch_json(
+            f"/api/boards/{self.board.id}/integrations/{self.id}/activities",
+            payload=payload,
+            http_method="DELETE",
+        )
 
-    def edit(self, enabled=None, title=None, url=None, token=None, activities=None) -> None:
+    def edit(
+        self, enabled=None, title=None, url=None, token=None, activities=None
+    ) -> None:
         """
         Edit the current instance by sending a PUT Request to the API
         according to https://wekan.github.io/api/v7.42/#edit_integration
@@ -89,8 +99,11 @@ class Integration(WekanBase):
         if activities:
             payload["activities"] = activities
 
-        self.board.client.fetch_json(f'/api/boards/{self.board.id}/integrations/{self.id}',
-                                     payload=payload, http_method="PUT")
+        self.board.client.fetch_json(
+            f"/api/boards/{self.board.id}/integrations/{self.id}",
+            payload=payload,
+            http_method="PUT",
+        )
 
     def change_title(self, new_title: str) -> None:
         """
@@ -116,5 +129,8 @@ class Integration(WekanBase):
         """
         assert isinstance(activities, list)
         payload = {"activities": activities}
-        self.board.client.fetch_json(f'/api/boards/{self.board.id}/integrations/{self.id}/activities',
-                                     payload=payload, http_method="POST")
+        self.board.client.fetch_json(
+            f"/api/boards/{self.board.id}/integrations/{self.id}/activities",
+            payload=payload,
+            http_method="POST",
+        )
