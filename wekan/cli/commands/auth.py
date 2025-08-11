@@ -98,7 +98,7 @@ def whoami():
         raise typer.Exit(1)
 
     try:
-        client = WekanClient(
+        WekanClient(
             base_url=config.base_url, username=config.username, password=config.password
         )
 

@@ -77,7 +77,7 @@ class NavigationContext:
         try:
             history_file = Path.home() / ".wekan_history"
             readline.write_history_file(str(history_file))
-        except:
+        except OSError:
             pass
 
     def completer(self, text: str, state: int) -> Optional[str]:
@@ -330,7 +330,7 @@ class NavigationContext:
                 try:
                     lists = board.get_lists()
                     list_count = str(len(lists))
-                except:
+                except Exception:
                     list_count = "?"
 
                 table.add_row(
@@ -369,7 +369,7 @@ class NavigationContext:
                 try:
                     cards = lst.get_cards()
                     card_count = str(len(cards))
-                except:
+                except Exception:
                     card_count = "?"
 
                 table.add_row(
@@ -598,7 +598,7 @@ class NavigationContext:
 
         list_name = " ".join(args)
         try:
-            new_list = self.board.create_list(title=list_name)
+            self.board.create_list(title=list_name)
             self.console.print(
                 f"[green]Created list '[bold]{list_name}[/bold]'[/green]"
             )
@@ -709,7 +709,6 @@ class NavigationContext:
                     )
 
                     # Update navigation context and go back to list level
-                    old_list = self.list_obj.title
                     self.list_obj = target_list
                     self.card = None
                     self.level = ContextLevel.LIST

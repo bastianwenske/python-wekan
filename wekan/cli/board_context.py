@@ -5,13 +5,11 @@ Interactive board context for WeKan CLI.
 import sys
 
 try:
-    import typer
     from rich.columns import Columns
     from rich.console import Console
     from rich.panel import Panel
-    from rich.prompt import Confirm, Prompt
+    from rich.prompt import Prompt
     from rich.table import Table
-    from rich.text import Text
 except ImportError:
     print("CLI dependencies not installed. Install with: pip install python-wekan[cli]")
     sys.exit(1)
@@ -66,11 +64,10 @@ class BoardContext:
                 cards = []
                 try:
                     cards = lst.get_cards() if hasattr(lst, "get_cards") else []
-                except:
+                except Exception:
                     pass
 
                 # Create list column
-                list_title = f"[bold magenta]{lst.title}[/bold magenta] ({len(cards)})"
 
                 # Create cards table
                 cards_content = []
@@ -233,7 +230,7 @@ class BoardContext:
                 try:
                     cards = lst.get_cards() if hasattr(lst, "get_cards") else []
                     total_cards += len(cards)
-                except:
+                except Exception:
                     pass
 
             info_content = [
@@ -276,7 +273,7 @@ class BoardContext:
                 try:
                     cards = lst.get_cards() if hasattr(lst, "get_cards") else []
                     card_count = str(len(cards))
-                except:
+                except Exception:
                     card_count = "?"
 
                 table.add_row(str(i), lst.id[:8] + "...", lst.title, card_count)
@@ -355,7 +352,7 @@ class BoardContext:
 
             list_name = " ".join(args[1:])
             try:
-                new_list = self.board.create_list(title=list_name)
+                self.board.create_list(title=list_name)
                 self.console.print(
                     f"[green] Created list '[bold]{list_name}[/bold]'[/green]"
                 )

@@ -10,7 +10,6 @@ try:
     from rich.console import Console
     from rich.panel import Panel
     from rich.table import Table
-    from rich.text import Text
 except ImportError:
     print("CLI dependencies not installed. Install with: pip install python-wekan[cli]")
     sys.exit(1)
@@ -152,14 +151,14 @@ def show(identifier: str):
         # Get board details - check if methods exist first
         try:
             lists = board.list_lists() if hasattr(board, "list_lists") else []
-        except:
+        except Exception:
             lists = []
 
         try:
             swimlanes = (
                 board.list_swimlanes() if hasattr(board, "list_swimlanes") else []
             )
-        except:
+        except Exception:
             swimlanes = []
 
         panel_content = []
@@ -192,7 +191,7 @@ def show(identifier: str):
                 try:
                     cards = lst.list_cards() if hasattr(lst, "list_cards") else []
                     card_count = len(cards)
-                except:
+                except Exception:
                     card_count = "?"
 
                 list_table.add_row(
