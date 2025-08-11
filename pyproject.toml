@@ -167,6 +167,11 @@ exclude_lines = [
     "@(abc\\.)?abstractmethod",
 ]
 
+# Bandit security linter configuration
+[tool.bandit]
+skips = ["B101", "B601"]
+exclude_dirs = ["tests", "venv", ".venv"]
+
 # Ruff configuration
 [tool.ruff]
 line-length = 88

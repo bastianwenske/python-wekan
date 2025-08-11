@@ -14,18 +14,18 @@ from wekan.wekan_client import WekanClient
 from wekan.wekan_list import WekanList
 
 __all__ = [
-    'Board',
-    'WekanCard',
-    'CardChecklist',
-    'CardChecklistItem',
-    'CardComment',
-    'Customfield',
-    'Integration',
-    'Label',
-    'Swimlane',
-    'WekanUser',
-    'WekanClient',
-    'WekanList',
+    "Board",
+    "WekanCard",
+    "CardChecklist",
+    "CardChecklistItem",
+    "CardComment",
+    "Customfield",
+    "Integration",
+    "Label",
+    "Swimlane",
+    "WekanUser",
+    "WekanClient",
+    "WekanList",
 ]
 
 __version__ = "0.3.1"
