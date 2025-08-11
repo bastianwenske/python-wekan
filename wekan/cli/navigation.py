@@ -6,20 +6,20 @@ import readline
 import sys
 from enum import Enum
 from pathlib import Path
+from typing import Optional
 
 try:
-    import typer
-    from rich.columns import Columns
     from rich.console import Console
     from rich.panel import Panel
-    from rich.prompt import Prompt
     from rich.table import Table
-    from rich.text import Text
 except ImportError:
     print("CLI dependencies not installed. Install with: pip install python-wekan[cli]")
     sys.exit(1)
 
+from wekan.board import Board
+from wekan.card import WekanCard
 from wekan.wekan_client import WekanClient
+from wekan.wekan_list import WekanList
 
 from .commands.boards import find_board
 from .config import load_config
@@ -43,15 +43,15 @@ class NavigationContext:
 
         # Navigation state
         self.level = ContextLevel.ROOT
-        self.board = None
-        self.list_obj = None
-        self.card = None
+        self.board: Optional[Board] = None
+        self.list_obj: Optional[WekanList] = None
+        self.card: Optional[WekanCard] = None
 
         # Navigation history
-        self.history = []
+        self.history: list[str] = []
         self.setup_readline()
 
-    def setup_readline(self):
+    def setup_readline(self) -> None:
         """Setup readline for command history and arrow key navigation."""
         try:
             # Enable history
@@ -72,7 +72,7 @@ class NavigationContext:
             # readline not available on this system
             pass
 
-    def save_history(self):
+    def save_history(self) -> None:
         """Save command history to file."""
         try:
             history_file = Path.home() / ".wekan_history"
@@ -80,7 +80,7 @@ class NavigationContext:
         except:
             pass
 
-    def completer(self, text: str, state: int):
+    def completer(self, text: str, state: int) -> Optional[str]:
         """Basic tab completion."""
         commands = self.get_available_commands()
         matches = [cmd for cmd in commands if cmd.startswith(text)]
@@ -182,10 +182,7 @@ class NavigationContext:
                     target_list = lists[index]
             else:
                 for lst in lists:
-                    if (
-                        lst.id.startswith(identifier)
-                        or identifier.lower() in lst.title.lower()
-                    ):
+                    if identifier in lst.id or identifier.lower() in lst.title.lower():
                         target_list = lst
                         break
 
@@ -220,7 +217,7 @@ class NavigationContext:
             else:
                 for card in cards:
                     if (
-                        card.id.startswith(identifier)
+                        identifier in card.id
                         or identifier.lower() in card.title.lower()
                     ):
                         target_card = card
@@ -238,7 +235,7 @@ class NavigationContext:
             self.console.print(f"[red]Error finding card: {str(e)}[/red]")
             return False
 
-    def handle_cd(self, args: list[str]):
+    def handle_cd(self, args: list[str]) -> None:
         """Handle cd (change directory) command."""
         if not args:
             self.console.print("[red]Usage: cd <board|list|card>[/red]")
@@ -269,12 +266,12 @@ class NavigationContext:
         elif self.level == ContextLevel.CARD:
             self.console.print("[yellow]Already at deepest level (card)[/yellow]")
 
-    def handle_pwd(self):
+    def handle_pwd(self) -> None:
         """Handle pwd (print working directory) command."""
         breadcrumb = self.get_breadcrumb()
         self.console.print(f"Current path: {breadcrumb}")
 
-    def handle_ls(self, args: list[str] = None):
+    def handle_ls(self, args: Optional[list[str]] = None) -> None:
         """Handle ls (list) command."""
         if self.level == ContextLevel.ROOT:
             self.list_boards()
@@ -285,16 +282,20 @@ class NavigationContext:
         elif self.level == ContextLevel.CARD:
             self.show_card_details()
 
-    def go_back(self):
+    def go_back(self) -> None:
         """Navigate back one level."""
         if self.level == ContextLevel.CARD:
             self.card = None
             self.level = ContextLevel.LIST
-            self.console.print(f"[green]Back to list: {self.list_obj.title}[/green]")
+            if self.list_obj:
+                self.console.print(
+                    f"[green]Back to list: {self.list_obj.title}[/green]"
+                )
         elif self.level == ContextLevel.LIST:
             self.list_obj = None
             self.level = ContextLevel.BOARD
-            self.console.print(f"[green]Back to board: {self.board.title}[/green]")
+            if self.board:
+                self.console.print(f"[green]Back to board: {self.board.title}[/green]")
         elif self.level == ContextLevel.BOARD:
             self.board = None
             self.level = ContextLevel.ROOT
@@ -302,7 +303,7 @@ class NavigationContext:
         else:
             self.console.print("[yellow]Already at root level[/yellow]")
 
-    def go_to_root(self):
+    def go_to_root(self) -> None:
         """Navigate to root level."""
         self.board = None
         self.list_obj = None
@@ -310,7 +311,7 @@ class NavigationContext:
         self.level = ContextLevel.ROOT
         self.console.print("[green]Returned to root[/green]")
 
-    def list_boards(self):
+    def list_boards(self) -> None:
         """List available boards."""
         try:
             boards = self.client.list_boards()
@@ -332,7 +333,12 @@ class NavigationContext:
                 except:
                     list_count = "?"
 
-                table.add_row(str(i), board.id[:8] + "...", board.title, list_count)
+                table.add_row(
+                    str(i),
+                    board.id[:8] + "..." if board.id else "",
+                    board.title,
+                    list_count,
+                )
 
             self.console.print(table)
             self.console.print("\nUse [bold]cd <index|name|id>[/bold] to enter a board")
@@ -340,7 +346,7 @@ class NavigationContext:
         except Exception as e:
             self.console.print(f"[red]Error listing boards: {str(e)}[/red]")
 
-    def list_board_contents(self):
+    def list_board_contents(self) -> None:
         """List contents of current board."""
         if not self.board:
             return
@@ -366,7 +372,9 @@ class NavigationContext:
                 except:
                     card_count = "?"
 
-                table.add_row(str(i), lst.id[:8] + "...", lst.title, card_count)
+                table.add_row(
+                    str(i), lst.id[:8] + "..." if lst.id else "", lst.title, card_count
+                )
 
             self.console.print(table)
             self.console.print("\nUse [bold]cd <index|name|id>[/bold] to enter a list")
@@ -374,7 +382,7 @@ class NavigationContext:
         except Exception as e:
             self.console.print(f"[red]Error listing board contents: {str(e)}[/red]")
 
-    def list_list_contents(self):
+    def list_list_contents(self) -> None:
         """List contents of current list."""
         if not self.list_obj:
             return
@@ -401,7 +409,9 @@ class NavigationContext:
                 desc = getattr(card, "description", "") or "No description"
                 desc = desc[:30] + "..." if len(desc) > 30 else desc
 
-                table.add_row(str(i), card.id[:8] + "...", card.title, desc)
+                table.add_row(
+                    str(i), card.id[:8] + "..." if card.id else "", card.title, desc
+                )
 
             self.console.print(table)
             self.console.print("\nUse [bold]cd <index|name|id>[/bold] to enter a card")
@@ -409,7 +419,7 @@ class NavigationContext:
         except Exception as e:
             self.console.print(f"[red]Error listing list contents: {str(e)}[/red]")
 
-    def show_card_details(self):
+    def show_card_details(self) -> None:
         """Show detailed view of current card."""
         if not self.card:
             return
@@ -423,8 +433,10 @@ class NavigationContext:
                 f"Description: {getattr(self.card, 'description', 'No description')}"
             )
             details.append(f"Created: {getattr(self.card, 'created_at', 'Unknown')}")
-            details.append(f"List: {self.list_obj.title}")
-            details.append(f"Board: {self.board.title}")
+            if self.list_obj:
+                details.append(f"List: {self.list_obj.title}")
+            if self.board:
+                details.append(f"Board: {self.board.title}")
 
             self.console.print(
                 Panel.fit(
@@ -437,7 +449,7 @@ class NavigationContext:
         except Exception as e:
             self.console.print(f"[red]Error showing card details: {str(e)}[/red]")
 
-    def show_help(self):
+    def show_help(self) -> None:
         """Show available commands for current context."""
         help_table = Table(
             title=f"Available Commands ({self.level.value.title()} Level)"
@@ -459,7 +471,7 @@ class NavigationContext:
         ]
 
         # Context-specific commands (Linux filesystem style)
-        context_commands = []
+        context_commands: list[tuple[str, str]] = []
         if self.level == ContextLevel.ROOT:
             context_commands = []
         elif self.level == ContextLevel.BOARD:
@@ -486,7 +498,7 @@ class NavigationContext:
 
         self.console.print(help_table)
 
-    def run_interactive_session(self):
+    def run_interactive_session(self) -> None:
         """Run the interactive navigation session."""
         self.console.print()
         self.console.print("[bold green]WeKan Navigation Shell[/bold green]")
@@ -574,7 +586,7 @@ class NavigationContext:
         # Save history on exit
         self.save_history()
 
-    def handle_mkdir(self, args: list[str]):
+    def handle_mkdir(self, args: list[str]) -> None:
         """Handle mkdir command - create new list."""
         if not args:
             self.console.print("[red]Usage: mkdir <list-name>[/red]")
@@ -593,7 +605,7 @@ class NavigationContext:
         except Exception as e:
             self.console.print(f"[red]Error creating list: {str(e)}[/red]")
 
-    def handle_touch(self, args: list[str]):
+    def handle_touch(self, args: list[str]) -> None:
         """Handle touch command - create new card."""
         if not args:
             self.console.print("[red]Usage: touch <card-title>[/red]")
@@ -609,7 +621,7 @@ class NavigationContext:
         )
         # TODO: Implement actual card creation when API is available
 
-    def handle_mv(self, args: list[str]):
+    def handle_mv(self, args: list[str]) -> None:
         """Handle mv command - move card to another list."""
         if self.level == ContextLevel.CARD:
             # Move current card to specified list
@@ -632,7 +644,7 @@ class NavigationContext:
         else:
             self.console.print("[red]mv can only be used at card or list level[/red]")
 
-    def handle_rm(self, args: list[str]):
+    def handle_rm(self, args: list[str]) -> None:
         """Handle rm command - remove/delete card."""
         if self.level == ContextLevel.CARD:
             # Delete current card
@@ -649,8 +661,12 @@ class NavigationContext:
         else:
             self.console.print("[red]rm can only be used at card or list level[/red]")
 
-    def move_current_card_to_list(self, target_identifier: str):
+    def move_current_card_to_list(self, target_identifier: str) -> None:
         """Move current card to target list."""
+        if not self.board or not self.card or not self.list_obj:
+            self.console.print("[red]Invalid navigation state for card movement[/red]")
+            return
+
         try:
             lists = self.board.get_lists()
             target_list = None
@@ -663,7 +679,7 @@ class NavigationContext:
             else:
                 for lst in lists:
                     if (
-                        lst.id.startswith(target_identifier)
+                        target_identifier in lst.id
                         or target_identifier.lower() in lst.title.lower()
                     ):
                         target_list = lst
@@ -711,7 +727,7 @@ class NavigationContext:
 
     def move_card_between_lists(
         self, card_identifier: str, target_list_identifier: str
-    ):
+    ) -> None:
         """Move specified card to target list."""
         # TODO: Implement card selection and movement from list level
         self.console.print("[yellow]Card movement from list level coming soon[/yellow]")
@@ -719,19 +735,20 @@ class NavigationContext:
             "For now, navigate to the card first: cd <card>, then use mv <list>"
         )
 
-    def delete_current_card(self):
+    def delete_current_card(self) -> None:
         """Delete current card."""
         from rich.prompt import Confirm
 
-        if Confirm.ask(
+        if self.card and Confirm.ask(
             f"[red]Delete card '{self.card.title}'? This cannot be undone![/red]"
         ):
             try:
                 # TODO: Implement actual card deletion when API is available
                 self.console.print("[yellow]Card deletion API coming soon[/yellow]")
-                self.console.print(
-                    f"[yellow]Would delete: '{self.card.title}'[/yellow]"
-                )
+                if self.card:
+                    self.console.print(
+                        f"[yellow]Would delete: '{self.card.title}'[/yellow]"
+                    )
 
                 # For now, just navigate back to list level
                 self.card = None
@@ -743,7 +760,7 @@ class NavigationContext:
         else:
             self.console.print("[yellow]Deletion cancelled[/yellow]")
 
-    def delete_card_from_list(self, card_identifier: str):
+    def delete_card_from_list(self, card_identifier: str) -> None:
         """Delete specified card from current list."""
         # TODO: Implement card selection and deletion from list level
         self.console.print("[yellow]Card deletion from list level coming soon[/yellow]")
@@ -751,7 +768,7 @@ class NavigationContext:
             "For now, navigate to the card first: cd <card>, then use rm"
         )
 
-    def handle_edit_card(self):
+    def handle_edit_card(self) -> None:
         """Handle comprehensive card editing."""
         if not self.card:
             return
@@ -798,7 +815,7 @@ class NavigationContext:
         except Exception as e:
             self.console.print(f"[red]Error in card editor: {str(e)}[/red]")
 
-    def show_card_edit_menu(self):
+    def show_card_edit_menu(self) -> None:
         """Show the card editing menu."""
         self.console.print(
             "╭─────────────────────────────────────────────────────────────╮"
@@ -840,8 +857,11 @@ class NavigationContext:
             "╰─────────────────────────────────────────────────────────────╯"
         )
 
-    def edit_card_basic(self):
+    def edit_card_basic(self) -> None:
         """Edit basic card information."""
+        if not self.card:
+            return
+
         self.console.print("\n[bold]Editing Basic Information[/bold]")
 
         current_title = self.card.title
@@ -858,7 +878,7 @@ class NavigationContext:
         else:
             self.console.print("[dim]No changes made to title[/dim]")
 
-    def edit_card_dates(self):
+    def edit_card_dates(self) -> None:
         """Edit card dates and times."""
         self.console.print("\n[bold]Editing Dates & Times[/bold]")
         self.console.print(
@@ -892,7 +912,7 @@ class NavigationContext:
             if new_date_str:
                 try:
                     # Parse the date
-                    from dateutil import parser
+                    from dateutil import parser  # type: ignore
 
                     new_date = parser.parse(new_date_str)
                     changes[field] = new_date
@@ -907,7 +927,7 @@ class NavigationContext:
                 self.console.print(f"[yellow]✓ {label} will be cleared[/yellow]")
 
         # Apply changes
-        if changes:
+        if changes and self.card:
             try:
                 self.card.edit(**changes)
                 self.console.print(
@@ -918,14 +938,16 @@ class NavigationContext:
         else:
             self.console.print("[dim]No date changes made[/dim]")
 
-    def edit_card_members(self):
+    def edit_card_members(self) -> None:
         """Edit card members and roles."""
         self.console.print("\n[bold]Editing Members & Roles[/bold]")
 
         # Get board members for selection
         try:
             board_members = (
-                self.board.get_members() if hasattr(self.board, "get_members") else []
+                self.board.get_members()
+                if self.board and hasattr(self.board, "get_members")
+                else []
             )
 
             if board_members:
@@ -951,14 +973,16 @@ class NavigationContext:
         except Exception as e:
             self.console.print(f"[red]Error accessing board members: {str(e)}[/red]")
 
-    def edit_card_labels(self):
+    def edit_card_labels(self) -> None:
         """Edit card labels."""
         self.console.print("\n[bold]Editing Labels[/bold]")
 
         try:
             # Get available labels from the board
             board_labels = (
-                self.board.get_labels() if hasattr(self.board, "get_labels") else []
+                self.board.get_labels()
+                if self.board and hasattr(self.board, "get_labels")
+                else []
             )
 
             if board_labels:
@@ -985,11 +1009,11 @@ class NavigationContext:
         except Exception as e:
             self.console.print(f"[red]Error accessing board labels: {str(e)}[/red]")
 
-    def edit_card_description(self):
+    def edit_card_description(self) -> None:
         """Edit card description with multi-line support."""
         self.console.print("\n[bold]Editing Description[/bold]")
 
-        current_desc = getattr(self.card, "description", "")
+        current_desc = getattr(self.card, "description", "") if self.card else ""
         self.console.print(
             f"Current description: [cyan]{current_desc or 'Empty'}[/cyan]"
         )
@@ -1006,7 +1030,7 @@ class NavigationContext:
 
         new_desc = "\n".join(lines).strip()
 
-        if new_desc != current_desc:
+        if new_desc != current_desc and self.card:
             try:
                 self.card.edit(description=new_desc)
                 self.console.print("[green]Description updated successfully![/green]")
@@ -1016,7 +1040,7 @@ class NavigationContext:
         else:
             self.console.print("[dim]No changes made to description[/dim]")
 
-    def edit_card_color(self):
+    def edit_card_color(self) -> None:
         """Edit card color."""
         self.console.print("\n[bold]Editing Card Color[/bold]")
 
@@ -1033,7 +1057,7 @@ class NavigationContext:
             "pink",
             "lime",
         ]
-        current_color = getattr(self.card, "color", "white")
+        current_color = getattr(self.card, "color", "white") if self.card else "white"
 
         self.console.print(f"Current color: [cyan]{current_color}[/cyan]")
         self.console.print("\nAvailable colors:")
@@ -1050,17 +1074,18 @@ class NavigationContext:
         elif choice.lower() in colors:
             new_color = choice.lower()
 
-        if new_color and new_color != current_color:
+        if new_color and new_color != current_color and self.card:
             try:
                 self.card.edit(color=new_color)
                 self.console.print(f"[green]Card color changed to: {new_color}[/green]")
-                self.card.color = new_color  # Update local object
+                # Note: color attribute might not exist on WekanCard, but we try to set it
+                self.card.color = new_color
             except Exception as e:
                 self.console.print(f"[red]Failed to update color: {str(e)}[/red]")
         else:
             self.console.print("[dim]No color changes made[/dim]")
 
-    def show_card_advanced_menu(self):
+    def show_card_advanced_menu(self) -> None:
         """Show advanced card editing options."""
         self.console.print("\n[bold]Advanced Card Features[/bold]")
         self.console.print()
@@ -1085,13 +1110,15 @@ class NavigationContext:
         else:
             self.console.print("[red]Invalid choice[/red]")
 
-    def show_card_comments(self):
+    def show_card_comments(self) -> None:
         """Show and manage card comments."""
         self.console.print("\n[bold]Card Comments[/bold]")
 
         try:
             comments = (
-                self.card.get_comments() if hasattr(self.card, "get_comments") else []
+                self.card.get_comments()
+                if self.card and hasattr(self.card, "get_comments")
+                else []
             )
 
             if comments:
@@ -1118,14 +1145,14 @@ class NavigationContext:
         except Exception as e:
             self.console.print(f"[red]Error accessing comments: {str(e)}[/red]")
 
-    def show_card_checklists(self):
+    def show_card_checklists(self) -> None:
         """Show and manage card checklists."""
         self.console.print("\n[bold]Card Checklists/Subtasks[/bold]")
 
         try:
             checklists = (
                 self.card.get_checklists()
-                if hasattr(self.card, "get_checklists")
+                if self.card and hasattr(self.card, "get_checklists")
                 else []
             )
 
@@ -1152,17 +1179,19 @@ class NavigationContext:
         except Exception as e:
             self.console.print(f"[red]Error accessing checklists: {str(e)}[/red]")
 
-    def show_custom_fields(self):
+    def show_custom_fields(self) -> None:
         """Show and manage custom fields."""
         self.console.print("\n[bold]Custom Fields[/bold]")
         self.console.print("[yellow]Custom field management coming soon[/yellow]")
 
-    def edit_time_tracking(self):
+    def edit_time_tracking(self) -> None:
         """Edit time tracking information."""
         self.console.print("\n[bold]Time Tracking[/bold]")
 
-        current_spent = getattr(self.card, "spent_time", 0) or 0
-        current_overtime = getattr(self.card, "is_overtime", False)
+        current_spent = getattr(self.card, "spent_time", 0) or 0 if self.card else 0
+        current_overtime = (
+            getattr(self.card, "is_overtime", False) if self.card else False
+        )
 
         self.console.print(f"Current spent time: [cyan]{current_spent} hours[/cyan]")
         self.console.print(f"Overtime: [cyan]{current_overtime}[/cyan]")
@@ -1185,7 +1214,7 @@ class NavigationContext:
         elif new_overtime_str in ["n", "no", "false", "0"]:
             changes["is_overtime"] = False
 
-        if changes:
+        if changes and self.card:
             try:
                 self.card.edit(**changes)
                 self.console.print("[green]Time tracking updated successfully![/green]")
@@ -1197,7 +1226,7 @@ class NavigationContext:
             self.console.print("[dim]No time tracking changes made[/dim]")
 
 
-def start_navigation():
+def start_navigation() -> None:
     """Start the WeKan navigation shell."""
     config = load_config()
 
