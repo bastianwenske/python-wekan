@@ -5,7 +5,7 @@ import pytest
 
 # Assuming 'api' is a globally available WekanClient instance, initialized in test_cases.py
 # This is not ideal, but follows the existing test structure.
-from tests.test_cases import api, fake
+from tests.cases_test import api, fake
 from wekan.board import Board
 from wekan.card import WekanCard
 from wekan.wekan_list import WekanList

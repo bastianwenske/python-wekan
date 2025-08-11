@@ -66,7 +66,8 @@ class BoardContext:
                 cards = []
                 try:
                     cards = lst.get_cards() if hasattr(lst, "get_cards") else []
-                except Exception:
+                except Exception:  # nosec B110
+                    # Ignore errors when fetching cards for display
                     pass
 
                 # Create list column
@@ -232,7 +233,8 @@ class BoardContext:
                 try:
                     cards = lst.get_cards() if hasattr(lst, "get_cards") else []
                     total_cards += len(cards)
-                except Exception:
+                except Exception:  # nosec B110
+                    # Ignore errors when counting cards
                     pass
 
             info_content = [
