@@ -6,8 +6,9 @@ import pytest
 
 # Skip entire module if CLI dependencies not available
 try:
+    from typing import Any
+
     from typer.testing import CliRunner
-    from typing import Any, Generator
 
     from wekan.cli.main import app
 except ImportError:

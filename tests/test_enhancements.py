@@ -1,7 +1,11 @@
+from collections.abc import Generator
 from datetime import datetime
 
 import pytest
 
+# Assuming 'api' is a globally available WekanClient instance, initialized in test_cases.py
+# This is not ideal, but follows the existing test structure.
+from tests.test_cases import api, fake
 from wekan.board import Board
 from wekan.card import WekanCard
 from wekan.wekan_list import WekanList
@@ -9,18 +13,12 @@ from wekan.wekan_list import WekanList
 # Mark all tests in this file as integration tests
 pytestmark = pytest.mark.integration
 
-# Assuming 'api' is a globally available WekanClient instance, initialized in test_cases.py
-# This is not ideal, but follows the existing test structure.
-from tests.test_cases import api, fake
-from typing import Generator
-
 
 @pytest.fixture(scope="module")
 def test_board() -> Generator[Board, None, None]:
     assert api is not None, "API client not initialized"
     board = api.add_board(
-        title=f"Test Board for Enhancements - {fake.first_name()}",
-        color="midnight"
+        title=f"Test Board for Enhancements - {fake.first_name()}", color="midnight"
     )
     yield board
     # Teardown: delete the board after tests are done
@@ -43,7 +41,10 @@ def test_board_update(test_board: Board) -> None:
     # Note: The 'description' attribute is not explicitly on the Board object in the original code.
     # This test would fail unless we add it. Let's assume description is part of the raw data.
     # Note: accessing private attribute for testing purposes
-    assert hasattr(updated_board, '_Board__raw_data') and updated_board._Board__raw_data.get("description") == new_description
+    assert (
+        hasattr(updated_board, "_Board__raw_data")
+        and updated_board._Board__raw_data.get("description") == new_description
+    )
 
 
 def test_board_archive_and_restore(test_board: Board) -> None:
@@ -61,7 +62,9 @@ def test_board_archive_and_restore(test_board: Board) -> None:
 
     # Verify from the API again
     assert api is not None, "API client not initialized"
-    refetched_board_restored = [b for b in api.list_boards() if b.id == test_board.id][0]
+    refetched_board_restored = [b for b in api.list_boards() if b.id == test_board.id][
+        0
+    ]
     assert refetched_board_restored.archived is False
 
 
@@ -124,13 +127,17 @@ def test_card_management(test_board: Board) -> None:
     another_list = test_board.create_list("Another List")
     card.move_to_list(another_list)
     # Note: assuming list_id attribute exists or using a different check
-    assert hasattr(card, 'list_id') and card.list_id == another_list.id
+    assert hasattr(card, "list_id") and card.list_id == another_list.id
 
     # Dates
     due_date = datetime.utcnow()
     card.set_due_date(due_date)
     # The time precision might differ, so we check the date part
-    assert card.due_at is not None and hasattr(card.due_at, 'date') and card.due_at.date() == due_date.date()
+    assert (
+        card.due_at is not None
+        and hasattr(card.due_at, "date")
+        and card.due_at.date() == due_date.date()
+    )
 
     # Assign member
     assert api is not None, "API client not initialized"

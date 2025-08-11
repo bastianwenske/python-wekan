@@ -99,7 +99,7 @@ class WekanCard(WekanBase):
 
     def assign_member(self, user_id: str) -> WekanCard:
         """Assign member to card."""
-        member_ids = [member for member in self.members]
+        member_ids = list(self.members)
         if user_id not in member_ids:
             member_ids.append(user_id)
         self.edit(members=member_ids)
