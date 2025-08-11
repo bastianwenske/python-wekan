@@ -176,11 +176,11 @@ class NavigationContext:
             target_list = None
 
             # Find list by index, ID, or name
-            if identifier.isdigit():
+            if lists and identifier.isdigit():
                 index = int(identifier) - 1
                 if 0 <= index < len(lists):
                     target_list = lists[index]
-            else:
+            elif lists:
                 for lst in lists:
                     if identifier in lst.id or identifier.lower() in lst.title.lower():
                         target_list = lst
@@ -210,11 +210,11 @@ class NavigationContext:
             target_card = None
 
             # Find card by index, ID, or name
-            if identifier.isdigit():
+            if cards and identifier.isdigit():
                 index = int(identifier) - 1
                 if 0 <= index < len(cards):
                     target_card = cards[index]
-            else:
+            elif cards:
                 for card in cards:
                     if (
                         identifier in card.id
@@ -254,15 +254,18 @@ class NavigationContext:
         # Try to navigate based on current context
         if self.level == ContextLevel.ROOT:
             if self.activate_board(target):
-                self.console.print(f"[green]Entered board: {self.board.title}[/green]")
+                board_title = self.board.title if self.board else "Unknown"
+                self.console.print(f"[green]Entered board: {board_title}[/green]")
         elif self.level == ContextLevel.BOARD:
             if self.activate_list(target):
+                list_title = self.list_obj.title if self.list_obj else "Unknown"
                 self.console.print(
-                    f"[green]Entered list: {self.list_obj.title}[/green]"
+                    f"[green]Entered list: {list_title}[/green]"
                 )
         elif self.level == ContextLevel.LIST:
             if self.activate_card(target):
-                self.console.print(f"[green]Entered card: {self.card.title}[/green]")
+                card_title = self.card.title if self.card else "Unknown"
+                self.console.print(f"[green]Entered card: {card_title}[/green]")
         elif self.level == ContextLevel.CARD:
             self.console.print("[yellow]Already at deepest level (card)[/yellow]")
 
@@ -596,6 +599,10 @@ class NavigationContext:
             self.console.print("[red]mkdir can only be used at board level[/red]")
             return
 
+        if not self.board:
+            self.console.print("[red]No board selected[/red]")
+            return
+
         list_name = " ".join(args)
         try:
             self.board.create_list(title=list_name)
@@ -911,7 +918,7 @@ class NavigationContext:
             if new_date_str:
                 try:
                     # Parse the date
-                    from dateutil import parser  # type: ignore
+                    from dateutil import parser
 
                     new_date = parser.parse(new_date_str)
                     changes[field] = new_date
@@ -1077,8 +1084,7 @@ class NavigationContext:
             try:
                 self.card.edit(color=new_color)
                 self.console.print(f"[green]Card color changed to: {new_color}[/green]")
-                # Note: color attribute might not exist on WekanCard, but we try to set it
-                self.card.color = new_color
+                # Note: color is handled via the API, not as a direct attribute
             except Exception as e:
                 self.console.print(f"[red]Failed to update color: {str(e)}[/red]")
         else:

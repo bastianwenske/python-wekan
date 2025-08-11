@@ -68,7 +68,7 @@ def main_callback(ctx: typer.Context):
 
 
 @app.command()
-def status():
+def status() -> None:
     """Show WeKan connection status."""
     try:
         config = load_config()
@@ -121,7 +121,7 @@ def status():
 
 
 @app.command()
-def navigate():
+def navigate() -> None:
     """Start interactive navigation shell (filesystem-like cd/ls interface)."""
     from .navigation import start_navigation
 
@@ -129,14 +129,14 @@ def navigate():
 
 
 @app.command()
-def version():
+def version() -> None:
     """Show version information."""
     import wekan
 
     console.print(f"WeKan CLI version: {getattr(wekan, '__version__', 'unknown')}")
 
 
-def main():
+def main() -> None:
     """Main entry point for the CLI."""
     try:
         app()

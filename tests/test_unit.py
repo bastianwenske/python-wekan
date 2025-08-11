@@ -64,7 +64,7 @@ class TestBoardUnit(unittest.TestCase):
         # Reset call counts before each test
         self.mock_client.fetch_json.reset_mock()
 
-    def test_board_update(self):
+    def test_board_update(self) -> None:
         """Test the update method of the Board class."""
         new_title = "Updated Board Title"
         new_description = "Updated description."
@@ -88,7 +88,7 @@ class TestBoardUnit(unittest.TestCase):
         # Check that the board's attributes were updated
         self.assertEqual(self.board.title, new_title)
 
-    def test_board_archive(self):
+    def test_board_archive(self) -> None:
         """Test the archive method of the Board class."""
         self.board.archive()
 
@@ -97,7 +97,7 @@ class TestBoardUnit(unittest.TestCase):
         )
         self.assertTrue(self.board.archived)
 
-    def test_board_restore(self):
+    def test_board_restore(self) -> None:
         """Test the restore method of the Board class."""
         # First, archive it to have something to restore
         self.board.archived = True
@@ -109,7 +109,7 @@ class TestBoardUnit(unittest.TestCase):
         )
         self.assertFalse(self.board.archived)
 
-    def test_get_members(self):
+    def test_get_members(self) -> None:
         """Test getting board members."""
         mock_members = [{"userId": "user1"}, {"userId": "user2"}]
         self.mock_client.fetch_json.return_value = mock_members
@@ -123,7 +123,7 @@ class TestBoardUnit(unittest.TestCase):
 
 
 class TestListAndCardUnit(unittest.TestCase):
-    def setUp(self):
+    def setUp(self) -> None:
         self.mock_client = MagicMock(spec=WekanClient)
         self.mock_client.user_id = "test_user_id"
         self.mock_board = MagicMock(spec=Board)
@@ -145,7 +145,7 @@ class TestListAndCardUnit(unittest.TestCase):
         self.list = WekanList(parent_board=self.mock_board, list_id="list1")
         self.mock_client.fetch_json.reset_mock()
 
-    def test_list_update(self):
+    def test_list_update(self) -> None:
         self.list.update(title="New List Title")
         self.mock_client.fetch_json.assert_any_call(
             "/api/boards/board1/lists/list1",
@@ -153,7 +153,7 @@ class TestListAndCardUnit(unittest.TestCase):
             payload={"title": "New List Title"},
         )
 
-    def test_card_creation(self):
+    def test_card_creation(self) -> None:
         self.mock_client.fetch_json.return_value = {
             "_id": "card1",
             "title": "New Card",

@@ -50,6 +50,7 @@ def test_wekan_client() -> None:
     global api  # this is global for being able to use the client in other tests
     api = WekanClient(base_url=wekan_base_url, username=username, password=password)
     assert len(api.token) == 43
+    assert api.user_id is not None
     assert len(api.user_id) == wekan_id_length
     assert isinstance(api, WekanClient)
 
@@ -60,6 +61,7 @@ def test_get_users() -> None:
     assert isinstance(all_users, list)
     assert isinstance(user, WekanUser)
     assert isinstance(user.username, str)
+    assert user.id is not None
     assert len(user.id) == wekan_id_length
 
 
@@ -70,6 +72,7 @@ def test_add_user() -> None:
     )
     assert isinstance(new_user, WekanUser)
     assert isinstance(new_user.modified_at, date)
+    assert new_user.id is not None
     assert len(new_user.id) == wekan_id_length
 
 
@@ -82,6 +85,7 @@ def test_add_board() -> None:
     assert isinstance(new_board, Board)
     assert isinstance(new_board.modified_at, date)
     assert isinstance(new_board.title, str)
+    assert new_board.id is not None
     assert len(new_board.id) == wekan_id_length
 
 
@@ -91,6 +95,7 @@ def test_list_boards() -> None:
     assert isinstance(all_boards, list)
     assert isinstance(board, Board)
     assert isinstance(board.title, str)
+    assert board.id is not None
     assert len(board.id) == wekan_id_length
 
 
@@ -100,6 +105,7 @@ def test_create_list() -> None:
     assert isinstance(new_list, WekanList)
     assert isinstance(new_list.sort, int)
     assert isinstance(new_list.created_at, date)
+    assert new_list.id is not None
     assert len(new_list.id) == wekan_id_length
 
 
@@ -109,6 +115,7 @@ def test_get_lists() -> None:
     assert isinstance(all_lists, list)
     assert isinstance(wekan_list, WekanList)
     assert isinstance(wekan_list.cards_count, int)
+    assert wekan_list.id is not None
     assert len(wekan_list.id) == wekan_id_length
 
 
@@ -118,6 +125,7 @@ def test_add_integration() -> None:
     assert isinstance(new_integration, Integration)
     assert isinstance(new_integration.modified_at, date)
     assert isinstance(new_integration.enabled, bool)
+    assert new_integration.id is not None
     assert len(new_integration.id) == wekan_id_length
 
 
@@ -128,12 +136,14 @@ def test_list_integrations() -> None:
     assert isinstance(single_integration, Integration)
     assert isinstance(single_integration.modified_at, date)
     assert isinstance(single_integration.enabled, bool)
+    assert single_integration.id is not None
     assert len(single_integration.id) == wekan_id_length
 
 
 def test_edit_integration() -> None:
     title = fake.name()
     new_integration.edit(title=title)
+    assert new_integration.id is not None
     updated_integration = new_board.get_integration_by_id(
         integration_id=new_integration.id
     )
@@ -144,6 +154,7 @@ def test_change_title_integration() -> None:
     new_title = fake.name()
     print(new_title)
     new_integration.change_title(new_title=new_title)
+    assert new_integration.id is not None
     updated_integration = new_board.get_integration_by_id(
         integration_id=new_integration.id
     )
@@ -154,6 +165,7 @@ def test_add_activities_integration() -> None:
     global new_activity
     new_activity = [fake.word()]
     new_integration.add_activities(activities=new_activity)
+    assert new_integration.id is not None
     updated_integration = new_board.get_integration_by_id(
         integration_id=new_integration.id
     )
@@ -173,6 +185,7 @@ def test_add_swimlane() -> None:
     assert isinstance(new_swimlane, Swimlane)
     assert isinstance(new_swimlane.updated_at, date)
     assert isinstance(new_swimlane.archived, bool)
+    assert new_swimlane.id is not None
     assert len(new_swimlane.id) == wekan_id_length
 
 
@@ -181,6 +194,7 @@ def test_list_swimlanes() -> None:
     swimlane = all_swimlanes[0]
     assert isinstance(all_swimlanes, list)
     assert isinstance(swimlane, Swimlane)
+    assert swimlane.id is not None
     assert len(swimlane.id) == wekan_id_length
 
 
@@ -209,6 +223,7 @@ def test_add_custom_field() -> None:
     assert isinstance(new_custom_field.automatically_on_card, bool)
     assert isinstance(new_custom_field.show_on_card, bool)
     assert isinstance(new_custom_field.name, str)
+    assert new_custom_field.id is not None
     assert len(new_custom_field.id) == wekan_id_length
 
 
@@ -217,6 +232,7 @@ def test_list_custom_fields() -> None:
     custom_field = all_custom_fields[0]
     assert isinstance(all_custom_fields, list)
     assert isinstance(custom_field, Customfield)
+    assert custom_field.id is not None
     assert len(custom_field.id) == wekan_id_length
 
 
@@ -226,6 +242,7 @@ def test_edit_custom_field() -> None:
     show_on_card = False
     data = {"name": new_name, "type": new_type, "showOnCard": show_on_card}
     new_custom_field.edit(data=data)
+    assert new_custom_field.id is not None
     updated_field = new_board.get_custom_field_by_id(
         custom_field_id=new_custom_field.id
     )
@@ -245,6 +262,7 @@ def test_create_card() -> None:
     assert isinstance(new_card.archived, bool)
     assert isinstance(new_card.sort, int)
     assert isinstance(new_card.modified_at, date)
+    assert new_card.id is not None
     assert len(new_card.id) == wekan_id_length
 
 
@@ -260,6 +278,7 @@ def test_edit_card() -> None:
         due_at=due_at,
         requested_by=requested_by,
     )
+    assert new_card.id is not None
     updated_card = new_list.get_card_by_id(card_id=new_card.id)
     assert updated_card.title == new_title
     assert updated_card.description == new_description
@@ -277,10 +296,11 @@ def test_add_card_checklist() -> None:
 
 
 def test_list_card_checklists() -> None:
-    all_checklists = new_card.list_checklists()
+    all_checklists = new_card.get_checklists()
     checklist = all_checklists[0]
     assert isinstance(all_checklists, list)
     assert isinstance(checklist, CardChecklist)
+    assert checklist.id is not None
     assert len(checklist.id) == wekan_id_length
 
 
@@ -355,6 +375,7 @@ def test_delete_list() -> None:
 
 def test_delete_integration_activities() -> None:
     new_integration.delete_activities(activities=new_activity)
+    assert new_integration.id is not None
     updated_integration = new_board.get_integration_by_id(new_integration.id)
     assert new_activity[0] not in updated_integration.activities
 
