@@ -12,6 +12,7 @@ from wekan.base import WekanBase
 
 class Label(WekanBase):
     """Represents a WeKan board label."""
+
     def __init__(self, parent_board: Board, label_id: str, name: str, color="") -> None:
         """Reference to a Wekan Label."""
         super().__init__()
@@ -27,7 +28,7 @@ class Label(WekanBase):
     @classmethod
     def from_dict(cls, parent_board: Board, data: dict) -> Label:
         """Creates an instance of class Label by using the API-Response of Label GET.
-        
+
         :param parent_board: Instance of Class Board pointing to the current Board
         :param data: Response of Label creation.
         :return: Instance of class Label
@@ -42,7 +43,7 @@ class Label(WekanBase):
     @classmethod
     def from_list(cls, parent_board: Board, data: list) -> list[Label]:
         """Wrapper around function from_dict to process multiple objects within one function call.
-        
+
         :param parent_board: Instance of Class Board pointing to the current Board
         :param data: Response of Label creation.
         :return: Instances of class Label
@@ -61,14 +62,14 @@ class Label(WekanBase):
 
     def delete(self) -> None:
         """Delete this Label instance.
-        
+
         Currently, not supported by API: https://wekan.github.io/api/v7.42/#wekan-rest-api-boards
         """
         raise NotImplementedError
 
     def edit(self, data: dict) -> None:
         """Edit the current instance by sending a PUT Request to the API.
-        
+
         Currently, not supported by API: https://wekan.github.io/api/v7.42/#wekan-rest-api-boards
         """
         raise NotImplementedError

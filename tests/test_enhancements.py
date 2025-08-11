@@ -12,17 +12,22 @@ pytestmark = pytest.mark.integration
 # Assuming 'api' is a globally available WekanClient instance, initialized in test_cases.py
 # This is not ideal, but follows the existing test structure.
 from tests.test_cases import api, fake
+from typing import Generator
 
 
 @pytest.fixture(scope="module")
-def test_board():
-    board = api.add_board(title=f"Test Board for Enhancements - {fake.first_name()}")
+def test_board() -> Generator[Board, None, None]:
+    assert api is not None, "API client not initialized"
+    board = api.add_board(
+        title=f"Test Board for Enhancements - {fake.first_name()}",
+        color="midnight"
+    )
     yield board
     # Teardown: delete the board after tests are done
     board.delete()
 
 
-def test_board_update(test_board: Board):
+def test_board_update(test_board: Board) -> None:
     """Test updating a board's properties."""
     new_title = f"Updated Title - {fake.last_name()}"
     new_description = fake.sentence()
@@ -31,20 +36,23 @@ def test_board_update(test_board: Board):
     # Re-fetch the board to verify the update
     # This assumes a method to get a board by ID, which is a good addition.
     # For now, we list all boards and find it.
+    assert api is not None, "API client not initialized"
     updated_board = [b for b in api.list_boards() if b.id == test_board.id][0]
 
     assert updated_board.title == new_title
     # Note: The 'description' attribute is not explicitly on the Board object in the original code.
     # This test would fail unless we add it. Let's assume description is part of the raw data.
-    assert updated_board._Board__raw_data["description"] == new_description
+    # Note: accessing private attribute for testing purposes
+    assert hasattr(updated_board, '_Board__raw_data') and updated_board._Board__raw_data.get("description") == new_description
 
 
-def test_board_archive_and_restore(test_board: Board):
+def test_board_archive_and_restore(test_board: Board) -> None:
     """Test archiving and restoring a board."""
     test_board.archive()
     assert test_board.archived is True
 
     # Verify from the API
+    assert api is not None, "API client not initialized"
     refetched_board = [b for b in api.list_boards() if b.id == test_board.id][0]
     assert refetched_board.archived is True
 
@@ -52,15 +60,15 @@ def test_board_archive_and_restore(test_board: Board):
     assert test_board.archived is False
 
     # Verify from the API again
-    refetched_board_restored = [b for b in api.list_boards() if b.id == test_board.id][
-        0
-    ]
+    assert api is not None, "API client not initialized"
+    refetched_board_restored = [b for b in api.list_boards() if b.id == test_board.id][0]
     assert refetched_board_restored.archived is False
 
 
-def test_board_member_management(test_board: Board):
+def test_board_member_management(test_board: Board) -> None:
     """Test getting members and adding a new one."""
     # First, get a user to add
+    assert api is not None, "API client not initialized"
     users = api.get_users()
     if not users:
         pytest.skip("No users found to test member management.")
@@ -70,6 +78,7 @@ def test_board_member_management(test_board: Board):
     initial_members = test_board.get_members()
 
     # Add a member
+    assert a_user.id is not None, "User ID is None"
     test_board.add_member(a_user.id, role="normal")
 
     # Verify
@@ -78,7 +87,7 @@ def test_board_member_management(test_board: Board):
     assert any(m["userId"] == a_user.id for m in updated_members)
 
 
-def test_list_management(test_board: Board):
+def test_list_management(test_board: Board) -> None:
     """Test list creation, update, archive, and restore."""
     # Create
     new_list = test_board.create_list("My New List")
@@ -97,7 +106,7 @@ def test_list_management(test_board: Board):
     assert new_list.archived is False
 
 
-def test_card_management(test_board: Board):
+def test_card_management(test_board: Board) -> None:
     """Test card creation and the new wrapper methods."""
     a_list = test_board.create_list("Card Test List")
 
@@ -114,19 +123,22 @@ def test_card_management(test_board: Board):
     # Move
     another_list = test_board.create_list("Another List")
     card.move_to_list(another_list)
-    assert card.list_id == another_list.id
+    # Note: assuming list_id attribute exists or using a different check
+    assert hasattr(card, 'list_id') and card.list_id == another_list.id
 
     # Dates
     due_date = datetime.utcnow()
     card.set_due_date(due_date)
     # The time precision might differ, so we check the date part
-    assert card.due_at.date() == due_date.date()
+    assert card.due_at is not None and hasattr(card.due_at, 'date') and card.due_at.date() == due_date.date()
 
     # Assign member
+    assert api is not None, "API client not initialized"
     users = api.get_users()
     if not users:
         pytest.skip("No users to test assignment.")
     a_user = users[-1]
 
+    assert a_user.id is not None, "User ID is None"
     card.assign_member(a_user.id)
     assert a_user.id in card.members

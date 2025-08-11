@@ -233,7 +233,7 @@ class WekanClient:
 
     def add_user(self, username: str, email: str, password: str) -> WekanUser:
         """Creates a new user according to https://wekan.github.io/api/v7.42/#new_user.
-        
+
         :param username: Username of the new user.
         :param email: E-Mail of the new user.
         :param password: Password of the new user.
