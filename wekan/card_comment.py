@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import typing
+from datetime import datetime
 
 if typing.TYPE_CHECKING:
     from wekan.card import WekanCard
@@ -17,10 +18,12 @@ class CardComment(WekanBase):
 
         uri = f"/api/boards/{self.card.list.board.id}/cards/{self.card.id}/comments/{self.id}"
         data = self.card.list.board.client.fetch_json(uri)
-        self.text = data["text"]
-        self.author_id = data["userId"]
-        self.createdAt = self.card.list.board.client.parse_iso_date(data["createdAt"])
-        self.modified_at = self.card.list.board.client.parse_iso_date(
+        self.text: str = data["text"]
+        self.author_id: str = data["userId"]
+        self.createdAt: datetime = self.card.list.board.client.parse_iso_date(
+            data["createdAt"]
+        )
+        self.modified_at: datetime = self.card.list.board.client.parse_iso_date(
             data["modifiedAt"]
         )
 

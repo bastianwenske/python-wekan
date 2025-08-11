@@ -23,7 +23,7 @@ console = Console()
 
 
 @app.callback(invoke_without_command=True)
-def auth_main(ctx: typer.Context):
+def auth_main(ctx: typer.Context) -> None:
     """Authentication commands. Run 'wekan auth --help' for available commands."""
     if ctx.invoked_subcommand is None:
         console.print("  Authentication commands available:")
@@ -44,7 +44,7 @@ def login(
     server: Optional[str] = typer.Option(
         None, "--server", "-s", help="WeKan server URL"
     ),
-):
+) -> None:
     """Login to WeKan server."""
     config = load_config()
 
@@ -62,8 +62,19 @@ def login(
     if not pwd:
         pwd = Prompt.ask("Password", password=True)
 
+    # Ensure all values are strings
+    if not base_url or not user or not pwd:
+        console.print(" All configuration values are required.")
+        raise typer.Exit(1)
+
     try:
-        client = WekanClient(base_url=base_url, username=user, password=pwd)
+        if not base_url or not user or not pwd:
+            console.print(" All configuration values are required.")
+            raise typer.Exit(1)
+
+        client = WekanClient(
+            base_url=str(base_url), username=str(user), password=str(pwd)
+        )
         boards = client.list_boards()  # Test connection
 
         console.print(
@@ -89,7 +100,7 @@ def login(
 
 
 @app.command()
-def whoami():
+def whoami() -> None:
     """Show current user information."""
     config = load_config()
 
@@ -98,8 +109,14 @@ def whoami():
         raise typer.Exit(1)
 
     try:
+        if not config.base_url or not config.username or not config.password:
+            console.print(" Not logged in. Run 'wekan auth login' first.")
+            raise typer.Exit(1)
+
         WekanClient(
-            base_url=config.base_url, username=config.username, password=config.password
+            base_url=str(config.base_url),
+            username=str(config.username),
+            password=str(config.password),
         )
 
         console.print(
@@ -118,7 +135,7 @@ def whoami():
 
 
 @app.command()
-def logout():
+def logout() -> None:
     """Logout from WeKan (clears stored credentials)."""
     console.print("  WeKan CLI uses configuration files for authentication.")
     console.print("To 'logout', remove or modify your .wekan configuration file.")

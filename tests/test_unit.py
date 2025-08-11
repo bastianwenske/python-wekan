@@ -14,7 +14,7 @@ pytestmark = pytest.mark.unit
 
 class TestBoardUnit(unittest.TestCase):
 
-    def setUp(self):
+    def setUp(self) -> None:
         # Mock WekanClient
         self.mock_client = MagicMock(spec=WekanClient)
         self.mock_client.user_id = "test_user_id"

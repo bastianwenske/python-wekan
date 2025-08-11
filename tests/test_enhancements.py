@@ -14,7 +14,7 @@ from wekan.wekan_list import WekanList
 pytestmark = pytest.mark.integration
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="module")  # type: ignore[misc]
 def test_board() -> Generator[Board, None, None]:
     assert api is not None, "API client not initialized"
     board = api.add_board(

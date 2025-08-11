@@ -49,6 +49,11 @@ def init(
     if not password:
         password = Prompt.ask("Password", password=True)
 
+    # Ensure all values are strings
+    if not server or not username or not password:
+        console.print(" All configuration values are required.")
+        raise typer.Exit(1)
+
     # Create config
     config = WekanConfig(base_url=server, username=username, password=password)
 
@@ -59,8 +64,14 @@ def init(
         # Test the configuration
         from wekan.wekan_client import WekanClient
 
+        if not config.base_url or not config.username or not config.password:
+            console.print(" All configuration values are required.")
+            raise typer.Exit(1)
+
         client = WekanClient(
-            base_url=config.base_url, username=config.username, password=config.password
+            base_url=str(config.base_url),
+            username=str(config.username),
+            password=str(config.password),
         )
         boards = client.list_boards()  # Test connection
 

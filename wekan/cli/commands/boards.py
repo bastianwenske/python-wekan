@@ -14,6 +14,7 @@ except ImportError:
     print("CLI dependencies not installed. Install with: pip install python-wekan[cli]")
     sys.exit(1)
 
+from wekan.board import Board
 from wekan.wekan_client import WekanClient
 
 from ..config import load_config
@@ -23,7 +24,7 @@ console = Console()
 
 
 @app.callback(invoke_without_command=True)
-def boards_main(ctx: typer.Context):
+def boards_main(ctx: typer.Context) -> None:
     """Board management commands. Run 'wekan boards --help' for available commands."""
     if ctx.invoked_subcommand is None:
         console.print("  Board management commands available:")
@@ -53,7 +54,7 @@ def get_client() -> WekanClient:
         raise typer.Exit(1)
 
 
-def find_board(client: WekanClient, identifier: str):
+def find_board(client: WekanClient, identifier: str) -> Optional[Board]:
     """Find board by ID prefix, name, or local index."""
     try:
         boards = client.list_boards()
@@ -69,23 +70,31 @@ def find_board(client: WekanClient, identifier: str):
                 return boards[index]
 
         # Try to match by ID prefix
-        id_matches = [b for b in boards if b.id.startswith(identifier)]
+        id_matches = [
+            b for b in boards if b and hasattr(b, "id") and b.id.startswith(identifier)
+        ]
         if len(id_matches) == 1:
             return id_matches[0]
         elif len(id_matches) > 1:
             console.print(f" Multiple boards match ID prefix '{identifier}':")
             for i, board in enumerate(id_matches, 1):
-                console.print(f"  {i}. {board.id[:12]}... - {board.title}")
+                if board and hasattr(board, "id") and hasattr(board, "title"):
+                    console.print(f"  {i}. {board.id[:12]}... - {board.title}")
             return None
 
         # Try to match by name (case-insensitive)
-        name_matches = [b for b in boards if identifier.lower() in b.title.lower()]
+        name_matches = [
+            b
+            for b in boards
+            if b and hasattr(b, "title") and identifier.lower() in b.title.lower()
+        ]
         if len(name_matches) == 1:
             return name_matches[0]
         elif len(name_matches) > 1:
             console.print(f" Multiple boards match name '{identifier}':")
             for i, board in enumerate(name_matches, 1):
-                console.print(f"  {i}. {board.title} ({board.id[:8]}...)")
+                if board and hasattr(board, "title") and hasattr(board, "id"):
+                    console.print(f"  {i}. {board.title} ({board.id[:8]}...)")
             return None
 
         console.print(f" No board found matching '{identifier}'")
@@ -101,7 +110,7 @@ def find_board(client: WekanClient, identifier: str):
 
 
 @app.command("list")
-def list_boards():
+def list_boards() -> None:
     """List all accessible boards."""
     client = get_client()
 
@@ -139,7 +148,7 @@ def list_boards():
 
 
 @app.command()
-def show(identifier: str):
+def show(identifier: str) -> None:
     """Show detailed information about a board. Use index (#), ID prefix, or name."""
     client = get_client()
 
@@ -150,7 +159,7 @@ def show(identifier: str):
 
         # Get board details - check if methods exist first
         try:
-            lists = board.list_lists() if hasattr(board, "list_lists") else []
+            lists = board.get_lists() if hasattr(board, "get_lists") else []
         except Exception:
             lists = []
 
@@ -189,7 +198,7 @@ def show(identifier: str):
 
             for i, lst in enumerate(lists, 1):
                 try:
-                    cards = lst.list_cards() if hasattr(lst, "list_cards") else []
+                    cards = lst.get_cards() if hasattr(lst, "get_cards") else []
                     card_count = len(cards)
                 except Exception:
                     card_count = "?"
@@ -206,7 +215,7 @@ def show(identifier: str):
 
 
 @app.command()
-def activate(identifier: str):
+def activate(identifier: str) -> None:
     """Activate board context for interactive work. Use index (#), ID prefix, or name."""
     from ..board_context import activate_board
 
@@ -219,9 +228,7 @@ def create(
     description: Optional[str] = typer.Option(
         None, "--description", "-d", help="Board description"
     ),
-    color: Optional[str] = typer.Option(
-        "midnight", "--color", "-c", help="Board color"
-    ),
+    color: str = typer.Option("midnight", "--color", "-c", help="Board color"),
     is_admin: bool = typer.Option(True, "--admin/--no-admin", help="Admin permissions"),
     is_no_comments: bool = typer.Option(
         False, "--no-comments", help="Disable comments"
@@ -229,7 +236,7 @@ def create(
     is_comment_only: bool = typer.Option(
         False, "--comment-only", help="Comment only mode"
     ),
-):
+) -> None:
     """Create a new board."""
     client = get_client()
 

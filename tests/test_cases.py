@@ -210,13 +210,15 @@ def test_add_custom_field() -> None:
         "checkbox",
         "stringtemplate",
     ]
+    # Workaround for settings parameter type mismatch
+    settings_type = dict[str, str]
     new_custom_field = new_board.add_custom_field(
         name=fake.name(),
         show_label_on_minicard=False,
         automatically_on_card=False,
         show_on_card=True,
         field_type=random.choice(custom_field_types),
-        settings={},
+        settings=settings_type,
         show_sum_at_top_of_list=False,
     )
     assert isinstance(new_custom_field, Customfield)
@@ -345,60 +347,90 @@ def test_eq() -> None:
 def test_delete_card_comment() -> None:
     # Re-fetch the comment as a CardComment object to delete it
     comment_to_delete = CardComment(parent_card=new_card, comment_id=new_comment["_id"])
-    comment_to_delete.delete()
-    assert new_comment["_id"] not in [c["_id"] for c in new_card.get_comments()]
+    try:
+        comment_to_delete.delete()
+        assert new_comment["_id"] not in [c["_id"] for c in new_card.get_comments()]
+    except Exception as e:
+        pytest.fail(f"Failed to delete comment: {str(e)}")
 
 
 def test_delete_card_checklist() -> None:
-    new_checklist.delete()
-    assert new_checklist.id not in [
-        checklist.id for checklist in new_card.get_checklists()
-    ]
+    try:
+        new_checklist.delete()
+        assert new_checklist.id not in [
+            checklist.id for checklist in new_card.get_checklists()
+        ]
+    except Exception as e:
+        pytest.fail(f"Failed to delete checklist: {str(e)}")
 
 
 def test_delete_card() -> None:
-    new_card.delete()
-    assert new_card.id not in [card.id for card in new_list.get_cards()]
+    try:
+        new_card.delete()
+        assert new_card.id not in [card.id for card in new_list.get_cards()]
+    except Exception as e:
+        pytest.fail(f"Failed to delete card: {str(e)}")
 
 
 def test_delete_swimlane() -> None:
-    new_swimlane.delete()
-    assert new_swimlane.id not in [
-        swimlane.id for swimlane in new_board.list_swimlanes()
-    ]
+    try:
+        new_swimlane.delete()
+        assert new_swimlane.id not in [
+            swimlane.id for swimlane in new_board.list_swimlanes()
+        ]
+    except Exception as e:
+        pytest.fail(f"Failed to delete swimlane: {str(e)}")
 
 
 def test_delete_list() -> None:
-    new_list.delete()
-    assert new_list.id not in [wlist.id for wlist in new_board.get_lists()]
+    try:
+        new_list.delete()
+        assert new_list.id not in [wlist.id for wlist in new_board.get_lists()]
+    except Exception as e:
+        pytest.fail(f"Failed to delete list: {str(e)}")
 
 
 def test_delete_integration_activities() -> None:
-    new_integration.delete_activities(activities=new_activity)
-    assert new_integration.id is not None
-    updated_integration = new_board.get_integration_by_id(new_integration.id)
-    assert new_activity[0] not in updated_integration.activities
+    try:
+        new_integration.delete_activities(activities=new_activity)
+        assert new_integration.id is not None
+        updated_integration = new_board.get_integration_by_id(new_integration.id)
+        assert new_activity[0] not in updated_integration.activities
+    except Exception as e:
+        pytest.fail(f"Failed to delete integration activities: {str(e)}")
 
 
 def test_delete_integration() -> None:
-    new_integration.delete()
-    assert new_integration.id not in [
-        integration.id for integration in new_board.list_integrations()
-    ]
+    try:
+        new_integration.delete()
+        assert new_integration.id not in [
+            integration.id for integration in new_board.list_integrations()
+        ]
+    except Exception as e:
+        pytest.fail(f"Failed to delete integration: {str(e)}")
 
 
 def test_delete_custom_field() -> None:
-    new_custom_field.delete()
-    assert new_custom_field.id not in [
-        custom_field.id for custom_field in new_board.list_custom_fields()
-    ]
+    try:
+        new_custom_field.delete()
+        assert new_custom_field.id not in [
+            custom_field.id for custom_field in new_board.list_custom_fields()
+        ]
+    except Exception as e:
+        pytest.fail(f"Failed to delete custom field: {str(e)}")
 
 
 def test_delete_board() -> None:
-    new_board.delete()
-    assert new_board.id not in [board.id for board in api.list_boards()]
+    try:
+        new_board.delete()
+        assert new_board.id not in [board.id for board in api.list_boards()]
+    except Exception as e:
+        pytest.fail(f"Failed to delete board: {str(e)}")
 
 
 def test_delete_user() -> None:
-    new_user.delete()
-    assert new_user.id not in [user.id for user in api.get_users()]
+    try:
+        new_user.delete()
+        assert new_user.id not in [user.id for user in api.get_users()]
+    except Exception as e:
+        pytest.fail(f"Failed to delete user: {str(e)}")

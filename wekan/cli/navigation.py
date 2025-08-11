@@ -173,16 +173,21 @@ class NavigationContext:
 
         try:
             lists = self.board.get_lists()
-            target_list = None
+            if not lists:
+                self.console.print(f"[red]List '{identifier}' not found[/red]")
+                return False
 
-            # Find list by index, ID, or name
-            if lists and identifier.isdigit():
+            target_list = None
+            if identifier.isdigit():
                 index = int(identifier) - 1
                 if 0 <= index < len(lists):
                     target_list = lists[index]
-            elif lists:
+            else:
                 for lst in lists:
-                    if identifier in lst.id or identifier.lower() in lst.title.lower():
+                    if lst.id and identifier in lst.id:
+                        target_list = lst
+                        break
+                    if lst.title and identifier.lower() in lst.title.lower():
                         target_list = lst
                         break
 
@@ -207,19 +212,21 @@ class NavigationContext:
 
         try:
             cards = self.list_obj.get_cards()
-            target_card = None
+            if not cards:
+                self.console.print(f"[red]Card '{identifier}' not found[/red]")
+                return False
 
-            # Find card by index, ID, or name
-            if cards and identifier.isdigit():
+            target_card = None
+            if identifier.isdigit():
                 index = int(identifier) - 1
                 if 0 <= index < len(cards):
                     target_card = cards[index]
-            elif cards:
+            else:
                 for card in cards:
-                    if (
-                        identifier in card.id
-                        or identifier.lower() in card.title.lower()
-                    ):
+                    if card.id and identifier in card.id:
+                        target_card = card
+                        break
+                    if card.title and identifier.lower() in card.title.lower():
                         target_card = card
                         break
 
@@ -259,9 +266,7 @@ class NavigationContext:
         elif self.level == ContextLevel.BOARD:
             if self.activate_list(target):
                 list_title = self.list_obj.title if self.list_obj else "Unknown"
-                self.console.print(
-                    f"[green]Entered list: {list_title}[/green]"
-                )
+                self.console.print(f"[green]Entered list: {list_title}[/green]")
         elif self.level == ContextLevel.LIST:
             if self.activate_card(target):
                 card_title = self.card.title if self.card else "Unknown"
@@ -411,10 +416,10 @@ class NavigationContext:
             for i, card in enumerate(cards, 1):
                 desc = getattr(card, "description", "") or "No description"
                 desc = desc[:30] + "..." if len(desc) > 30 else desc
+                card_id = card.id[:8] + "..." if card and card.id else ""
+                card_title = card.title if card and card.title else "Untitled"
 
-                table.add_row(
-                    str(i), card.id[:8] + "..." if card.id else "", card.title, desc
-                )
+                table.add_row(str(i), card_id, card_title, desc)
 
             self.console.print(table)
             self.console.print("\nUse [bold]cd <index|name|id>[/bold] to enter a card")
@@ -430,12 +435,18 @@ class NavigationContext:
         try:
             # Create detailed card view
             details = []
-            details.append(f"ID: {self.card.id}")
-            details.append(f"Title: {self.card.title}")
             details.append(
-                f"Description: {getattr(self.card, 'description', 'No description')}"
+                f"ID: {self.card.id if self.card and self.card.id else 'Unknown'}"
             )
-            details.append(f"Created: {getattr(self.card, 'created_at', 'Unknown')}")
+            details.append(
+                f"Title: {self.card.title if self.card and self.card.title else 'Untitled'}"
+            )
+            details.append(
+                f"Description: {getattr(self.card, 'description', 'No description') if self.card else 'No description'}"
+            )
+            details.append(
+                f"Created: {getattr(self.card, 'created_at', 'Unknown') if self.card else 'Unknown'}"
+            )
             if self.list_obj:
                 details.append(f"List: {self.list_obj.title}")
             if self.board:
@@ -685,10 +696,10 @@ class NavigationContext:
                     target_list = lists[index]
             else:
                 for lst in lists:
-                    if (
-                        target_identifier in lst.id
-                        or target_identifier.lower() in lst.title.lower()
-                    ):
+                    if lst.id and target_identifier in lst.id:
+                        target_list = lst
+                        break
+                    if lst.title and target_identifier.lower() in lst.title.lower():
                         target_list = lst
                         break
 
@@ -921,7 +932,7 @@ class NavigationContext:
                     from dateutil import parser
 
                     new_date = parser.parse(new_date_str)
-                    changes[field] = new_date
+                    changes[field] = new_date.isoformat() if new_date else None
                     self.console.print(
                         f"[green]✓ {label} will be set to: {new_date}[/green]"
                     )

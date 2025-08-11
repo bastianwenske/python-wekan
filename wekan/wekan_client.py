@@ -3,7 +3,6 @@ import re
 from datetime import datetime, timezone
 
 import requests
-from dateutil import parser
 
 from wekan.board import Board
 from wekan.user import WekanUser
@@ -111,13 +110,16 @@ class WekanClient:
         return json_obj["id"], json_obj["token"], json_obj["tokenExpires"]
 
     @staticmethod
-    def parse_iso_date(date: str) -> datetime.date:
+    def parse_iso_date(date_str: str) -> datetime:
         """
-        Read in a string object for converting it to ISO format.
-        :param date: date object in non iso format
-        :return: date in parsed iso format
+        Parse ISO 8601 date string to datetime object.
+        :param date_str: Date string in ISO format
+        :return: Parsed datetime object
         """
-        return parser.isoparse(date)
+        try:
+            return datetime.fromisoformat(date_str.replace("Z", "+00:00"))
+        except ValueError:
+            return datetime.fromisoformat(date_str)
 
     def __is_api_token_expired(self) -> bool:
         """

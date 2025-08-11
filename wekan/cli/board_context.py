@@ -23,12 +23,14 @@ from .config import load_config
 class BoardContext:
     """Interactive board context for focused work."""
 
-    def __init__(self, client: WekanClient, board):
+    def __init__(self, client: WekanClient, board) -> None:
         self.client = client
         self.board = board
         self.console = Console()
+        self.lists: list = []
+        self.cards: list = []
 
-    def show_board(self):
+    def show_board(self) -> None:
         """Display the complete KANBAN board layout."""
         try:
             # Get board data
@@ -119,7 +121,7 @@ class BoardContext:
         except Exception as e:
             self.console.print(f"[red] Error displaying board: {str(e)}[/red]")
 
-    def run_interactive_session(self):
+    def run_interactive_session(self) -> None:
         """Run interactive board session."""
         self.console.print(
             f"\n [bold green]Entered board context:[/bold green] [bold blue]{self.board.title}[/bold blue]"
@@ -190,7 +192,7 @@ class BoardContext:
             except Exception as e:
                 self.console.print(f"[red] Error: {str(e)}[/red]")
 
-    def show_help(self):
+    def show_help(self) -> None:
         """Show available commands in board context."""
         help_table = Table(title="Board Context Commands", show_header=True)
         help_table.add_column("Command", style="cyan", width=20)
@@ -214,7 +216,7 @@ class BoardContext:
 
         self.console.print(help_table)
 
-    def show_board_info(self):
+    def show_board_info(self) -> None:
         """Show detailed board information."""
         try:
             lists = self.board.get_lists() if hasattr(self.board, "get_lists") else []
@@ -254,7 +256,7 @@ class BoardContext:
         except Exception as e:
             self.console.print(f"[red] Error getting board info: {str(e)}[/red]")
 
-    def handle_lists_command(self, args):
+    def handle_lists_command(self, args: list[str]) -> None:
         """Handle lists command."""
         try:
             lists = self.board.get_lists() if hasattr(self.board, "get_lists") else []
@@ -283,7 +285,7 @@ class BoardContext:
         except Exception as e:
             self.console.print(f"[red] Error listing lists: {str(e)}[/red]")
 
-    def handle_cards_command(self, args):
+    def handle_cards_command(self, args: list[str]) -> None:
         """Handle cards command."""
         if not args:
             self.console.print("[red] Usage: cards <list-id>[/red]")
@@ -337,7 +339,7 @@ class BoardContext:
         except Exception as e:
             self.console.print(f"[red] Error listing cards: {str(e)}[/red]")
 
-    def handle_list_command(self, args):
+    def handle_list_command(self, args: list[str]) -> None:
         """Handle list commands (create, show, etc)."""
         if not args:
             self.console.print("[red] Usage: list <create|show> ...[/red]")
@@ -371,7 +373,7 @@ class BoardContext:
         else:
             self.console.print(f"[red] Unknown list command: {subcommand}[/red]")
 
-    def handle_card_command(self, args):
+    def handle_card_command(self, args: list[str]) -> None:
         """Handle card commands (create, show, etc)."""
         if not args:
             self.console.print("[red] Usage: card <create|show> ...[/red]")
@@ -395,8 +397,12 @@ class BoardContext:
             self.console.print(f"[red] Unknown card command: {subcommand}[/red]")
 
 
-def activate_board(identifier: str):
-    """Activate board context."""
+def activate_board(identifier: str) -> None:
+    """Activate board context for interactive work.
+
+    Args:
+        identifier: Board identifier (ID prefix, name, or index)
+    """
     config = load_config()
 
     if not config.base_url or not config.username or not config.password:

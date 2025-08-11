@@ -31,8 +31,8 @@ app.add_typer(boards.app, name="boards", help="Board management commands")
 app.add_typer(config.app, name="config", help="Configuration management commands")
 
 
-@app.callback(invoke_without_command=True)
-def main_callback(ctx: typer.Context):
+@app.callback(invoke_without_command=True)  # type: ignore[misc]
+def main_callback(ctx: typer.Context) -> None:
     """Wekan CLI - Command line interface for Wekan kanban boards."""
     if ctx.invoked_subcommand is None:
         console.print()
@@ -67,7 +67,7 @@ def main_callback(ctx: typer.Context):
         console.print()
 
 
-@app.command()
+@app.command()  # type: ignore[misc]
 def status() -> None:
     """Show WeKan connection status."""
     try:
@@ -120,7 +120,7 @@ def status() -> None:
         raise typer.Exit(1)
 
 
-@app.command()
+@app.command()  # type: ignore[misc]
 def navigate() -> None:
     """Start interactive navigation shell (filesystem-like cd/ls interface)."""
     from .navigation import start_navigation
@@ -128,7 +128,7 @@ def navigate() -> None:
     start_navigation()
 
 
-@app.command()
+@app.command()  # type: ignore[misc]
 def version() -> None:
     """Show version information."""
     import wekan
