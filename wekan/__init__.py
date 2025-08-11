@@ -10,3 +10,5 @@ from wekan.swimlane import *
 from wekan.user import *
 from wekan.wekan_client import *
 from wekan.wekan_list import *
+
+__version__ = "0.3.1"

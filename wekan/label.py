@@ -1,14 +1,16 @@
 from __future__ import annotations
+
 import typing
+
 if typing.TYPE_CHECKING:
-	from wekan.board import Board
+    from wekan.board import Board
 
 from wekan.base import WekanBase
 
 
 class Label(WekanBase):
     def __init__(self, parent_board: Board, label_id: str, name: str, color="") -> None:
-        """ Reference to a Wekan Label """
+        """Reference to a Wekan Label"""
         super().__init__()
         self.board = parent_board
         self.id = label_id
@@ -26,7 +28,12 @@ class Label(WekanBase):
         :param data: Response of Label creation.
         :return: Instance of class Label
         """
-        return cls(parent_board=parent_board, label_id=data['_id'], name=data['name'], color=data['color'])
+        return cls(
+            parent_board=parent_board,
+            label_id=data["_id"],
+            name=data["name"],
+            color=data["color"],
+        )
 
     @classmethod
     def from_list(cls, parent_board: Board, data: list) -> list[Label]:
@@ -38,8 +45,14 @@ class Label(WekanBase):
         """
         instances = []
         for label in data:
-            instances.append(cls(parent_board=parent_board, label_id=label['_id'],
-                                 name=label['name'], color=label['color']))
+            instances.append(
+                cls(
+                    parent_board=parent_board,
+                    label_id=label["_id"],
+                    name=label["name"],
+                    color=label["color"],
+                )
+            )
         return instances
 
     def delete(self) -> None:

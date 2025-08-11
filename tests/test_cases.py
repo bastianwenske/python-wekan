@@ -1,24 +1,27 @@
-from datetime import datetime
-from datetime import date
-import requests
+import random
+from datetime import date, datetime
 
-from wekan import WekanClient
-from wekan import Board
-from wekan.user import WekanUser
-from wekan.wekan_list import WekanList
-from wekan import Swimlane
-from wekan import Integration
+import pytest
+import requests
+from faker import Faker
+
+from wekan import Board, Customfield, Integration, Swimlane, WekanClient
 from wekan.card import WekanCard
 from wekan.card_checklist import CardChecklist
 from wekan.card_comment import CardComment
-from wekan import Customfield
-from faker import Faker
-import random
+from wekan.user import WekanUser
+from wekan.wekan_list import WekanList
+
+# Mark all tests in this file as integration tests
+pytestmark = pytest.mark.integration
 
 
 fake = Faker()
 wekan_id_length = 17
 wekan_base_url = "http://localhost:8080"
+
+# Global API client (initialized in test_wekan_client)
+api = None
 
 
 def test_parse_iso_date():
@@ -29,18 +32,12 @@ def test_parse_iso_date():
 def test_wekan_client():
     username = fake.name()
     password = fake.password(length=12)
-    payload = {
-        "username": username,
-        "password": password,
-        "email": fake.email()
-    }
+    payload = {"username": username, "password": password, "email": fake.email()}
     res = requests.post(url=f"{wekan_base_url}/users/register", data=payload)
     assert res.status_code == 200
 
     global api  # this is global for being able to use the client in other tests
-    api = WekanClient(base_url=wekan_base_url,
-                      username=username,
-                      password=password)
+    api = WekanClient(base_url=wekan_base_url, username=username, password=password)
     assert len(api.token) == 43
     assert len(api.user_id) == wekan_id_length
     assert isinstance(api, WekanClient)
@@ -57,9 +54,9 @@ def test_get_users():
 
 def test_add_user():
     global new_user  # this is global for being able to use the user in other tests
-    new_user = api.add_user(username=fake.email(),
-                            email=fake.email(),
-                            password=fake.password(length=12))
+    new_user = api.add_user(
+        username=fake.email(), email=fake.email(), password=fake.password(length=12)
+    )
     assert isinstance(new_user, WekanUser)
     assert isinstance(new_user.modified_at, date)
     assert len(new_user.id) == wekan_id_length
@@ -68,8 +65,9 @@ def test_add_user():
 def test_add_board():
     colors = ["belize", "nephritis", "pomegranate", "pumpkin", "wisteria", "midnight"]
     global new_board  # this is global for being able to use the board in other tests
-    new_board = api.add_board(title=f"{fake.first_name()}'s Board",
-                              color=random.choice(colors))
+    new_board = api.add_board(
+        title=f"{fake.first_name()}'s Board", color=random.choice(colors)
+    )
     assert isinstance(new_board, Board)
     assert isinstance(new_board.modified_at, date)
     assert isinstance(new_board.title, str)
@@ -125,7 +123,9 @@ def test_list_integrations():
 def test_edit_integration():
     title = fake.name()
     new_integration.edit(title=title)
-    updated_integration = new_board.get_integration_by_id(integration_id=new_integration.id)
+    updated_integration = new_board.get_integration_by_id(
+        integration_id=new_integration.id
+    )
     assert updated_integration.title == title
 
 
@@ -133,7 +133,9 @@ def test_change_title_integration():
     new_title = fake.name()
     print(new_title)
     new_integration.change_title(new_title=new_title)
-    updated_integration = new_board.get_integration_by_id(integration_id=new_integration.id)
+    updated_integration = new_board.get_integration_by_id(
+        integration_id=new_integration.id
+    )
     assert updated_integration.title == new_title
 
 
@@ -141,12 +143,20 @@ def test_add_activities_integration():
     global new_activity
     new_activity = [fake.word()]
     new_integration.add_activities(activities=new_activity)
-    updated_integration = new_board.get_integration_by_id(integration_id=new_integration.id)
+    updated_integration = new_board.get_integration_by_id(
+        integration_id=new_integration.id
+    )
     assert new_activity[0] in updated_integration.activities
 
 
 def test_add_swimlane():
-    swimlane_names = ["high prio", "expedite", "internal tasks", "tasks for customer", "low prio"]
+    swimlane_names = [
+        "high prio",
+        "expedite",
+        "internal tasks",
+        "tasks for customer",
+        "low prio",
+    ]
     global new_swimlane  # this is global for being able to use the swimlane in other tests
     new_swimlane = new_board.add_swimlane(title=random.choice(swimlane_names))
     assert isinstance(new_swimlane, Swimlane)
@@ -166,14 +176,24 @@ def test_list_swimlanes():
 def test_add_custom_field():
     global new_custom_field  # this is global for being able to use the CustomField in other tests
     global custom_field_types
-    custom_field_types = ["text", "number", "date", "dropdown", "currency", "checkbox", "stringtemplate"]
-    new_custom_field = new_board.add_custom_field(name=fake.name(),
-                                                  show_label_on_minicard=False,
-                                                  automatically_on_card=False,
-                                                  show_on_card=True,
-                                                  field_type=random.choice(custom_field_types),
-                                                  settings={},
-                                                  show_sum_at_top_of_list=False)
+    custom_field_types = [
+        "text",
+        "number",
+        "date",
+        "dropdown",
+        "currency",
+        "checkbox",
+        "stringtemplate",
+    ]
+    new_custom_field = new_board.add_custom_field(
+        name=fake.name(),
+        show_label_on_minicard=False,
+        automatically_on_card=False,
+        show_on_card=True,
+        field_type=random.choice(custom_field_types),
+        settings={},
+        show_sum_at_top_of_list=False,
+    )
     assert isinstance(new_custom_field, Customfield)
     assert isinstance(new_custom_field.automatically_on_card, bool)
     assert isinstance(new_custom_field.show_on_card, bool)
@@ -193,13 +213,11 @@ def test_edit_custom_field():
     new_name = fake.name()
     new_type = random.choice(custom_field_types)
     show_on_card = False
-    data = {
-        "name": new_name,
-        "type": new_type,
-        "showOnCard": show_on_card
-    }
+    data = {"name": new_name, "type": new_type, "showOnCard": show_on_card}
     new_custom_field.edit(data=data)
-    updated_field = new_board.get_custom_field_by_id(custom_field_id=new_custom_field.id)
+    updated_field = new_board.get_custom_field_by_id(
+        custom_field_id=new_custom_field.id
+    )
     assert updated_field.name == new_name
     assert updated_field.type == new_type
     assert updated_field.show_on_card == show_on_card
@@ -207,9 +225,11 @@ def test_edit_custom_field():
 
 def test_create_card():
     global new_card  # this is global for being able to use the card in other tests
-    new_card = new_list.create_card(title=f"{fake.name()}'s Card",
-                                 members=[new_user.id],
-                                 description=fake.text(max_nb_chars=500))
+    new_card = new_list.create_card(
+        title=f"{fake.name()}'s Card",
+        members=[new_user.id],
+        description=fake.text(max_nb_chars=500),
+    )
     assert isinstance(new_card, WekanCard)
     assert isinstance(new_card.archived, bool)
     assert isinstance(new_card.sort, int)
@@ -222,11 +242,13 @@ def test_edit_card():
     new_description = fake.text(max_nb_chars=500)
     due_at = datetime.now()
     requested_by = fake.name()
-    new_card.edit(title=new_title,
-                  description=new_description,
-                  spent_time=12,
-                  due_at=due_at,
-                  requested_by=requested_by)
+    new_card.edit(
+        title=new_title,
+        description=new_description,
+        spent_time=12,
+        due_at=due_at,
+        requested_by=requested_by,
+    )
     updated_card = new_list.get_card_by_id(card_id=new_card.id)
     assert updated_card.title == new_title
     assert updated_card.description == new_description
@@ -271,7 +293,7 @@ def test_add_card_comment():
     text = fake.text(max_nb_chars=100)
     new_comment = new_card.add_comment(text=text)
     assert isinstance(new_comment, dict)
-    assert new_comment['cardId'] == new_card.id
+    assert new_comment["cardId"] == new_card.id
 
 
 def test_get_card_comments():
@@ -279,7 +301,7 @@ def test_get_card_comments():
     comment = all_comments[0]
     assert isinstance(all_comments, list)
     assert isinstance(comment, dict)
-    assert len(comment['_id']) == wekan_id_length
+    assert len(comment["_id"]) == wekan_id_length
 
 
 def test_eq():
@@ -291,14 +313,16 @@ def test_eq():
 
 def test_delete_card_comment():
     # Re-fetch the comment as a CardComment object to delete it
-    comment_to_delete = CardComment(parent_card=new_card, comment_id=new_comment['_id'])
+    comment_to_delete = CardComment(parent_card=new_card, comment_id=new_comment["_id"])
     comment_to_delete.delete()
-    assert new_comment['_id'] not in [c['_id'] for c in new_card.get_comments()]
+    assert new_comment["_id"] not in [c["_id"] for c in new_card.get_comments()]
 
 
 def test_delete_card_checklist():
     new_checklist.delete()
-    assert new_checklist.id not in [checklist.id for checklist in new_card.get_checklists()]
+    assert new_checklist.id not in [
+        checklist.id for checklist in new_card.get_checklists()
+    ]
 
 
 def test_delete_card():
@@ -308,7 +332,9 @@ def test_delete_card():
 
 def test_delete_swimlane():
     new_swimlane.delete()
-    assert new_swimlane.id not in [swimlane.id for swimlane in new_board.list_swimlanes()]
+    assert new_swimlane.id not in [
+        swimlane.id for swimlane in new_board.list_swimlanes()
+    ]
 
 
 def test_delete_list():
@@ -324,12 +350,16 @@ def test_delete_integration_activities():
 
 def test_delete_integration():
     new_integration.delete()
-    assert new_integration.id not in [integration.id for integration in new_board.list_integrations()]
+    assert new_integration.id not in [
+        integration.id for integration in new_board.list_integrations()
+    ]
 
 
 def test_delete_custom_field():
     new_custom_field.delete()
-    assert new_custom_field.id not in [custom_field.id for custom_field in new_board.list_custom_fields()]
+    assert new_custom_field.id not in [
+        custom_field.id for custom_field in new_board.list_custom_fields()
+    ]
 
 
 def test_delete_board():

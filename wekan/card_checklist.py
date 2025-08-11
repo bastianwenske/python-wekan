@@ -1,7 +1,9 @@
 from __future__ import annotations
+
 import typing
+
 if typing.TYPE_CHECKING:
-	from wekan.card import WekanCard
+    from wekan.card import WekanCard
 
 from wekan.base import WekanBase
 from wekan.card_checklist_item import CardChecklistItem
@@ -9,24 +11,30 @@ from wekan.card_checklist_item import CardChecklistItem
 
 class CardChecklist(WekanBase):
     def __init__(self, parent_card: WekanCard, checklist_id: str) -> None:
-        """ Reference to a Wekan Card Checklist """
+        """Reference to a Wekan Card Checklist"""
         super().__init__()
         self.card = parent_card
         self.id = checklist_id
 
-        uri = f'/api/boards/{self.card.list.board.id}/cards/{self.card.id}/checklists/{self.id}'
+        uri = f"/api/boards/{self.card.list.board.id}/cards/{self.card.id}/checklists/{self.id}"
         self.__raw_data = self.card.list.board.client.fetch_json(uri)
-        self.title = self.__raw_data['title']
-        self.sort = self.__raw_data['sort']
-        self.createdAt = self.card.list.board.client.parse_iso_date(self.__raw_data['createdAt'])
-        self.modified_at = self.card.list.board.client.parse_iso_date(self.__raw_data['modifiedAt'])
+        self.title = self.__raw_data["title"]
+        self.sort = self.__raw_data["sort"]
+        self.createdAt = self.card.list.board.client.parse_iso_date(
+            self.__raw_data["createdAt"]
+        )
+        self.modified_at = self.card.list.board.client.parse_iso_date(
+            self.__raw_data["modifiedAt"]
+        )
 
     def list_checklists(self) -> list[CardChecklistItem]:
         """
         List all checklist items
         :return: list of checklist items
         """
-        return CardChecklistItem.from_list(parent_checklist=self, data=self.__raw_data['items'])
+        return CardChecklistItem.from_list(
+            parent_checklist=self, data=self.__raw_data["items"]
+        )
 
     def __repr__(self) -> str:
         return f"<CardChecklist (id: {self.id}, title: {self.title})>"
@@ -39,7 +47,7 @@ class CardChecklist(WekanBase):
         :param data: Response of CardChecklist GET.
         :return: Instance of class CardChecklist
         """
-        return cls(parent_card=parent_card, checklist_id=data['_id'])
+        return cls(parent_card=parent_card, checklist_id=data["_id"])
 
     @classmethod
     def from_list(cls, parent_card: WekanCard, data: list) -> list[CardChecklist]:
@@ -51,7 +59,9 @@ class CardChecklist(WekanBase):
         """
         instances = []
         for checklist in data:
-            instances.append(cls(parent_card=parent_card, checklist_id=checklist['_id']))
+            instances.append(
+                cls(parent_card=parent_card, checklist_id=checklist["_id"])
+            )
         return instances
 
     def edit(self, data: dict) -> None:
@@ -66,7 +76,7 @@ class CardChecklist(WekanBase):
         Delete the Card Checklist instance according to https://wekan.github.io/api/v7.42/#delete_checklist
         :return: None
         """
-        uri = f'/api/boards/{self.card.list.board.id}/cards/{self.card.id}/checklists/{self.id}'
+        uri = f"/api/boards/{self.card.list.board.id}/cards/{self.card.id}/checklists/{self.id}"
         self.card.list.board.client.fetch_json(uri, http_method="DELETE")
 
     def add_item(self) -> CardChecklistItem:

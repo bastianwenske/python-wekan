@@ -1,24 +1,28 @@
 from __future__ import annotations
+
 import typing
+
 if typing.TYPE_CHECKING:
-	from wekan.card import WekanCard
+    from wekan.card import WekanCard
 
 from wekan.base import WekanBase
 
 
 class CardComment(WekanBase):
     def __init__(self, parent_card: WekanCard, comment_id: str) -> None:
-        """ Reference to a Wekan CardComment """
+        """Reference to a Wekan CardComment"""
         super().__init__()
         self.card = parent_card
         self.id = comment_id
 
-        uri = f'/api/boards/{self.card.list.board.id}/cards/{self.card.id}/comments/{self.id}'
+        uri = f"/api/boards/{self.card.list.board.id}/cards/{self.card.id}/comments/{self.id}"
         data = self.card.list.board.client.fetch_json(uri)
-        self.text = data['text']
-        self.author_id = data['userId']
-        self.createdAt = self.card.list.board.client.parse_iso_date(data['createdAt'])
-        self.modified_at = self.card.list.board.client.parse_iso_date(data['modifiedAt'])
+        self.text = data["text"]
+        self.author_id = data["userId"]
+        self.createdAt = self.card.list.board.client.parse_iso_date(data["createdAt"])
+        self.modified_at = self.card.list.board.client.parse_iso_date(
+            data["modifiedAt"]
+        )
 
     def __repr__(self) -> str:
         return f"<CardComment (id: {self.id}, text: {self.text})>"
@@ -31,7 +35,7 @@ class CardComment(WekanBase):
         :param data: Response of CardComment GET.
         :return: Instance of class CardComment
         """
-        return cls(parent_card=parent_card, comment_id=data['_id'])
+        return cls(parent_card=parent_card, comment_id=data["_id"])
 
     @classmethod
     def from_list(cls, parent_card: WekanCard, data: list) -> list[CardComment]:
@@ -43,7 +47,7 @@ class CardComment(WekanBase):
         """
         instances = []
         for comment in data:
-            instances.append(cls(parent_card=parent_card, comment_id=comment['_id']))
+            instances.append(cls(parent_card=parent_card, comment_id=comment["_id"]))
         return instances
 
     def edit(self, data: dict) -> None:
@@ -59,5 +63,5 @@ class CardComment(WekanBase):
         Delete the CardComment instance according to https://wekan.github.io/api/v7.42/#delete_comment
         :return: None
         """
-        uri = f'/api/boards/{self.card.list.board.id}/cards/{self.card.id}/comments/{self.id}'
+        uri = f"/api/boards/{self.card.list.board.id}/cards/{self.card.id}/comments/{self.id}"
         self.card.list.board.client.fetch_json(uri, http_method="DELETE")

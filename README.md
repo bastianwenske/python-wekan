@@ -14,7 +14,11 @@ The project assumes that you are using a [currently-supported](https://devguide.
 
 ### Via pip
 ```bash
+# Install library only
 pip install python-wekan
+
+# Install with CLI support
+pip install python-wekan[cli]
 ```
 
 ## How to use
@@ -148,6 +152,49 @@ wekan = WekanClient(
 
 board = wekan.list_boards(regex_filter='My new Board')[0]
 board.add_swimlane(title="My first swimlane")
+```
+
+## Command Line Interface
+
+The python-wekan library includes an optional CLI for managing WeKan boards from the command line.
+
+### Installation
+```bash
+pip install python-wekan[cli]
+```
+
+### Quick Start
+```bash
+# Initialize configuration
+wekan config init https://your-wekan-server.com username password
+
+# Check connection
+wekan status
+
+# List boards
+wekan boards list
+
+# Show board details
+wekan boards show <board-id>
+
+# Create a new board
+wekan boards create "My Project Board" --description "Project management board"
+```
+
+### Commands
+- `wekan auth` - Authentication commands (login, whoami, logout)
+- `wekan config` - Configuration management (init, show, set)
+- `wekan boards` - Board management (list, show, create)
+- `wekan status` - Show connection status
+- `wekan version` - Show version information
+
+### Configuration
+The CLI uses `.wekan` configuration files or environment variables:
+```bash
+# Environment variables
+export WEKAN_BASE_URL=https://your-wekan-server.com
+export WEKAN_USERNAME=your-username
+export WEKAN_PASSWORD=your-password
 ```
 
 ## Development

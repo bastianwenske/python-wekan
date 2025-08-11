@@ -1,15 +1,18 @@
 from datetime import datetime
-from wekan import WekanClient
-from wekan.board import Board
-from wekan.user import WekanUser
-from wekan.wekan_list import WekanList
-from wekan.card import WekanCard
-from faker import Faker
+
 import pytest
+
+from wekan.board import Board
+from wekan.card import WekanCard
+from wekan.wekan_list import WekanList
+
+# Mark all tests in this file as integration tests
+pytestmark = pytest.mark.integration
 
 # Assuming 'api' is a globally available WekanClient instance, initialized in test_cases.py
 # This is not ideal, but follows the existing test structure.
 from tests.test_cases import api, fake
+
 
 @pytest.fixture(scope="module")
 def test_board():
@@ -17,6 +20,7 @@ def test_board():
     yield board
     # Teardown: delete the board after tests are done
     board.delete()
+
 
 def test_board_update(test_board: Board):
     """Test updating a board's properties."""
@@ -32,7 +36,8 @@ def test_board_update(test_board: Board):
     assert updated_board.title == new_title
     # Note: The 'description' attribute is not explicitly on the Board object in the original code.
     # This test would fail unless we add it. Let's assume description is part of the raw data.
-    assert updated_board._Board__raw_data['description'] == new_description
+    assert updated_board._Board__raw_data["description"] == new_description
+
 
 def test_board_archive_and_restore(test_board: Board):
     """Test archiving and restoring a board."""
@@ -47,8 +52,11 @@ def test_board_archive_and_restore(test_board: Board):
     assert test_board.archived is False
 
     # Verify from the API again
-    refetched_board_restored = [b for b in api.list_boards() if b.id == test_board.id][0]
+    refetched_board_restored = [b for b in api.list_boards() if b.id == test_board.id][
+        0
+    ]
     assert refetched_board_restored.archived is False
+
 
 def test_board_member_management(test_board: Board):
     """Test getting members and adding a new one."""
@@ -57,7 +65,7 @@ def test_board_member_management(test_board: Board):
     if not users:
         pytest.skip("No users found to test member management.")
 
-    a_user = users[-1] # Pick a user that is likely not the admin
+    a_user = users[-1]  # Pick a user that is likely not the admin
 
     initial_members = test_board.get_members()
 
@@ -67,7 +75,8 @@ def test_board_member_management(test_board: Board):
     # Verify
     updated_members = test_board.get_members()
     assert len(updated_members) == len(initial_members) + 1
-    assert any(m['userId'] == a_user.id for m in updated_members)
+    assert any(m["userId"] == a_user.id for m in updated_members)
+
 
 def test_list_management(test_board: Board):
     """Test list creation, update, archive, and restore."""
@@ -86,6 +95,7 @@ def test_list_management(test_board: Board):
     assert new_list.archived is True
     new_list.restore()
     assert new_list.archived is False
+
 
 def test_card_management(test_board: Board):
     """Test card creation and the new wrapper methods."""
