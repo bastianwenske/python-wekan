@@ -1,3 +1,5 @@
+"""Python client library for WeKan REST API."""
+
 from wekan.board import *
 from wekan.card import *
 from wekan.card_checklist import *

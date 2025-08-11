@@ -1,6 +1,4 @@
-"""
-Main CLI application entry point.
-"""
+"""Main CLI application entry point."""
 
 import sys
 
@@ -35,7 +33,7 @@ app.add_typer(config.app, name="config", help="Configuration management commands
 
 @app.callback(invoke_without_command=True)
 def main_callback(ctx: typer.Context):
-    """WeKan CLI - Command line interface for WeKan kanban boards."""
+    """Wekan CLI - Command line interface for Wekan kanban boards."""
     if ctx.invoked_subcommand is None:
         console.print()
         console.print(

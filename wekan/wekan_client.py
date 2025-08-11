@@ -232,11 +232,11 @@ class WekanClient:
         return Board.from_dict(client=self, data=response)
 
     def add_user(self, username: str, email: str, password: str) -> WekanUser:
-        """
-        Creates a new board according to https://wekan.github.io/api/v7.42/#new_user
+        """Creates a new user according to https://wekan.github.io/api/v7.42/#new_user.
+        
         :param username: Username of the new user.
         :param email: E-Mail of the new user.
-        :param password: Passwort of the new user.
+        :param password: Password of the new user.
         :return: Instance of class WekanUser
         """
         payload = {"username": username, "email": email, "password": password}

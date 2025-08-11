@@ -1,6 +1,4 @@
-"""
-Configuration management commands for WeKan CLI.
-"""
+"""Configuration management commands for WeKan CLI."""
 
 import sys
 from pathlib import Path
@@ -29,9 +27,8 @@ def init(
     config_file: Optional[str] = typer.Option(
         None, "--file", "-f", help="Config file path"
     ),
-):
+) -> None:
     """Initialize WeKan CLI configuration."""
-
     # Check if config already exists
     existing_config_file = find_config_file()
     if existing_config_file and not config_file:
@@ -102,7 +99,7 @@ def init(
 
 
 @app.command()
-def show():
+def show() -> None:
     """Show current configuration."""
     config = load_config()
     config_file = find_config_file()
@@ -142,7 +139,7 @@ def set(
     config_file: Optional[str] = typer.Option(
         None, "--file", "-f", help="Config file path"
     ),
-):
+) -> None:
     """Set configuration values."""
     # Load existing config
     config = load_config()

@@ -1,6 +1,4 @@
-"""
-Configuration management for WeKan CLI.
-"""
+"""Configuration management for WeKan CLI."""
 
 import os
 from pathlib import Path
@@ -29,7 +27,8 @@ class WekanConfig(BaseModel):
 
     @field_validator("base_url")
     @classmethod
-    def validate_base_url(cls, v):
+    def validate_base_url(cls, v) -> str:
+        """Validate and normalize base URL."""
         if v and v.endswith("/"):
             v = v.rstrip("/")
         if v == "":
@@ -82,7 +81,7 @@ def load_config(config_file: Optional[Path] = None) -> WekanConfig:
     return WekanConfig(**config_data)
 
 
-def save_config(config: WekanConfig, config_file: Optional[Path] = None):
+def save_config(config: WekanConfig, config_file: Optional[Path] = None) -> None:
     """Save WeKan configuration to file."""
     if config_file is None:
         config_file = Path(".wekan")
