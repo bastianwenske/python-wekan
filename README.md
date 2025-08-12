@@ -14,14 +14,18 @@ The project assumes that you are using a [currently-supported](https://devguide.
 
 ### Via pip
 ```bash
+# Install library only
 pip install python-wekan
+
+# Install with CLI support
+pip install python-wekan[cli]
 ```
 
 ## How to use
 ### Set the credentials
 ```bash
 export WEKAN_USERNAME="USERNAME"
-export WEKAN_PASSWORD="PASSWORD"
+export WEKAN_PASSWORD="PASSWORD" # pragma: allowlist secret
 ```
 ### Use the module
 ```python
@@ -149,6 +153,119 @@ wekan = WekanClient(
 board = wekan.list_boards(regex_filter='My new Board')[0]
 board.add_swimlane(title="My first swimlane")
 ```
+
+## Command Line Interface
+
+The python-wekan library includes a comprehensive CLI with modern features for managing WeKan boards from the command line.
+
+### Installation
+```bash
+pip install python-wekan[cli]
+```
+
+### Quick Start
+```bash
+# Initialize configuration
+wekan config init https://your-wekan-server.com username password
+
+# Check connection status
+wekan status
+
+# Start interactive navigation shell (recommended!)
+wekan navigate
+```
+
+### Interactive Navigation Shell
+The CLI features a powerful **filesystem-like navigation** interface that lets you browse and manage your WeKan boards intuitively:
+
+```bash
+# Start the navigation shell
+wekan navigate
+
+# Navigate through your boards, lists, and cards like directories
+wekan> ls                    # List all boards
+wekan> cd "My Project"       # Enter a board
+wekan:/My Project> ls        # List board contents (lists, swimlanes)
+wekan:/My Project> cd Todo   # Enter a list
+wekan:/My Project/Todo> ls   # List cards in the list
+wekan:/My Project/Todo> cd 1 # Enter a card by index or ID
+wekan:/My Project/Todo/1> edit # Edit card properties
+
+# Navigation commands
+pwd                          # Show current path
+cd ..                        # Go up one level
+cd /                         # Go to root (all boards)
+history                      # Show command history
+help                         # Show available commands
+exit                         # Exit navigation shell
+```
+
+### Standard Commands
+Beyond the interactive shell, these commands are available:
+
+#### Board Management
+```bash
+# List boards
+wekan boards list
+
+# Show board details
+wekan boards show <board-id>
+
+# Create a new board
+wekan boards create "My Project Board" --description "Project management board"
+```
+
+#### Authentication & Configuration
+```bash
+# Authentication
+wekan auth login             # Login with credentials
+wekan auth whoami           # Show current user
+wekan auth logout           # Clear stored credentials
+
+# Configuration management
+wekan config init <url> <username> <password>  # Initialize configuration
+wekan config show                               # Show current configuration
+wekan config set <key> <value>                 # Set configuration value
+```
+
+#### Utility Commands
+```bash
+wekan status                # Show connection status and server info
+wekan version              # Show CLI version information
+```
+
+### Configuration
+The CLI supports multiple configuration methods:
+
+#### Configuration File (`.wekan`)
+The CLI automatically searches for `.wekan` configuration files in:
+- Current directory
+- Parent directories (up to home directory)
+- Home directory (`~/.wekan`)
+
+Example `.wekan` file:
+```ini
+[default]
+base_url = https://your-wekan-server.com
+username = your-username
+password = your-password
+```
+
+#### Environment Variables
+```bash
+export WEKAN_BASE_URL=https://your-wekan-server.com
+export WEKAN_USERNAME=your-username
+export WEKAN_PASSWORD=your-password
+```
+
+### Features
+- **Modern CLI Framework**: Built with typer and rich for beautiful output
+- **Interactive Navigation**: Filesystem-like cd/ls/pwd interface
+- **Command History**: Built-in command history and tab completion
+- **Hierarchical Context**: Navigate through boards → lists → cards seamlessly
+- **Card Editing**: Comprehensive card editing interface with date, member, label support
+- **Configuration Management**: Flexible configuration via files or environment variables
+- **Error Handling**: Improved error handling and user-friendly messages
 
 ## Development
 ### Generate requirements

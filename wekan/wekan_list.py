@@ -1,42 +1,50 @@
 from __future__ import annotations
+
 import typing
+
 if typing.TYPE_CHECKING:
-	from wekan.board import Board
+    from wekan.board import Board
 
 import logging
 import re
 
 from wekan.base import WekanBase
 from wekan.card import WekanCard
-from wekan.swimlane import Swimlane
 
 
 class WekanList(WekanBase):
     def __init__(self, parent_board: Board, list_id: str) -> None:
-        """ Reference to a Wekan List. """
+        """Reference to a Wekan List."""
         super().__init__()
         self.board = parent_board
         self.id = list_id
 
-        data = self.board.client.fetch_json(f'/api/boards/{self.board.id}/lists/{self.id}')
-        self.title = data['title']
-        self.archived = data['archived']
-        self.swimlane_id = data['swimlaneId']
-        self.created_at = self.board.client.parse_iso_date(data['createdAt'])
-        self.updated_at = self.board.client.parse_iso_date(data['updatedAt'])
+        data = self.board.client.fetch_json(f"/api/boards/{self.board.id}/lists/{self.id}")
+        self.title = data["title"]
+        self.archived = data["archived"]
+        self.swimlane_id = data["swimlaneId"]
+        self.created_at = self.board.client.parse_iso_date(data["createdAt"])
+        self.updated_at = self.board.client.parse_iso_date(data["updatedAt"])
         try:
-            self.sort = data['sort']
+            self.sort = data["sort"]
         except Exception:
-            logging.exception("List lacks sort parameter! Is this a subtasks board? https://github.com/wekan/wekan/issues/5582")
+            logging.exception(
+                "List lacks sort parameter! Is this a subtasks board?",
+                "https://github.com/wekan/wekan/issues/5582",
+            )
             logging.debug(list_id)
-        self.wip_limit = data['wipLimit']
-        self.color = data.get('color', '')
+        self.wip_limit = data["wipLimit"]
+        self.color = data.get("color", "")
 
         try:
-            data_cc = self.board.client.fetch_json(f'/api/boards/{self.board.id}/lists/{self.id}/cards_count')
-            self.cards_count = data_cc['list_cards_count']
+            data_cc = self.board.client.fetch_json(
+                f"/api/boards/{self.board.id}/lists/{self.id}/cards_count"
+            )
+            self.cards_count = data_cc["list_cards_count"]
         except Exception:
-            logging.exception("Failed getting cards_count, instance possibly too old (stable snap?)")
+            logging.exception(
+                "Failed getting cards_count, instance possibly too old (stable snap?)"
+            )
             logging.debug(list_id)
 
     def __repr__(self) -> str:
@@ -47,9 +55,9 @@ class WekanList(WekanBase):
         Get all cards by calling the API according to https://wekan.github.io/api/v7.42/#get_list
         :return: All cards
         """
-        return self.board.client.fetch_json(f'/api/boards/{self.board.id}/lists/{self.id}/cards')
+        return self.board.client.fetch_json(f"/api/boards/{self.board.id}/lists/{self.id}/cards")
 
-    def get_cards(self, regex_filter='.*') -> list[WekanCard]:
+    def get_cards(self, regex_filter=".*") -> list[WekanCard]:
         """
         Get all (matching) cards
         :param regex_filter: Regex filter that will be applied to the search.
@@ -64,7 +72,9 @@ class WekanList(WekanBase):
         :param card_id: id of the card to fetch data from
         :return: Instance of type WekanCard
         """
-        response = self.board.client.fetch_json(f'/api/boards/{self.board.id}/lists/{self.id}/cards/{card_id}')
+        response = self.board.client.fetch_json(
+            f"/api/boards/{self.board.id}/lists/{self.id}/cards/{card_id}"
+        )
         return WekanCard.from_dict(parent_list=self, data=response)
 
     @classmethod
@@ -75,7 +85,7 @@ class WekanList(WekanBase):
         :param data: Response of List creation.
         :return: Instance of class WekanList
         """
-        return cls(parent_board=parent_board, list_id=data['_id'])
+        return cls(parent_board=parent_board, list_id=data["_id"])
 
     @classmethod
     def from_list(cls, parent_board: Board, data: list) -> list[WekanList]:
@@ -87,22 +97,22 @@ class WekanList(WekanBase):
         """
         instances = []
         for wekan_list in data:
-            instances.append(cls(parent_board=parent_board, list_id=wekan_list['_id']))
+            instances.append(cls(parent_board=parent_board, list_id=wekan_list["_id"]))
         return instances
 
     def update(self, title: str = None, position: int = None) -> WekanList:
         """Update list properties."""
         payload = {}
         if title is not None:
-            payload['title'] = title
+            payload["title"] = title
         if position is not None:
-            payload['sort'] = position
+            payload["sort"] = position
 
         if payload:
             self.board.client.fetch_json(
-                f'/api/boards/{self.board.id}/lists/{self.id}',
-                http_method='PUT',
-                payload=payload
+                f"/api/boards/{self.board.id}/lists/{self.id}",
+                http_method="PUT",
+                payload=payload,
             )
             # Refresh data
             self.__init__(self.board, self.id)
@@ -111,16 +121,14 @@ class WekanList(WekanBase):
     def archive(self) -> None:
         """Archive this list."""
         self.board.client.fetch_json(
-            f'/api/boards/{self.board.id}/lists/{self.id}/archive',
-            http_method='POST'
+            f"/api/boards/{self.board.id}/lists/{self.id}/archive", http_method="POST"
         )
         self.archived = True
 
     def restore(self) -> None:
         """Restore this list from archive."""
         self.board.client.fetch_json(
-            f'/api/boards/{self.board.id}/lists/{self.id}/unarchive',
-            http_method='POST'
+            f"/api/boards/{self.board.id}/lists/{self.id}/unarchive", http_method="POST"
         )
         self.archived = False
 
@@ -130,8 +138,8 @@ class WekanList(WekanBase):
         :return: None
         """
         self.board.client.fetch_json(
-            f'/api/boards/{self.board.id}/lists/{self.id}',
-            http_method="DELETE")
+            f"/api/boards/{self.board.id}/lists/{self.id}", http_method="DELETE"
+        )
 
     def create_card(self, title: str, description: str = "", members=None) -> WekanCard:
         """
@@ -144,13 +152,15 @@ class WekanList(WekanBase):
         if members is None:
             members = []
         payload = {
-            'title': title,
-            'authorId': self.board.client.user_id,
-            'members': members,
-            'description': description,
-            'swimlaneId': f'{self.board.id}'
+            "title": title,
+            "authorId": self.board.client.user_id,
+            "members": members,
+            "description": description,
+            "swimlaneId": f"{self.board.id}",
         }
         response = self.board.client.fetch_json(
-            uri_path=f'/api/boards/{self.board.id}/lists/{self.id}/cards',
-            http_method="POST", payload=payload)
+            uri_path=f"/api/boards/{self.board.id}/lists/{self.id}/cards",
+            http_method="POST",
+            payload=payload,
+        )
         return WekanCard.from_dict(parent_list=self, data=response)

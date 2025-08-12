@@ -1,51 +1,79 @@
 from __future__ import annotations
+
 import typing
+
 if typing.TYPE_CHECKING:
-	from wekan.card_checklist import CardChecklist
+    from wekan.card_checklist import CardChecklist
 
 from wekan.base import WekanBase
 
 
 class CardChecklistItem(WekanBase):
-    def __init__(self, parent_checklist: CardChecklist, item_id: str, title: str, is_finished: bool) -> None:
-        """ Reference to a Wekan CardChecklistItem """
+    def __init__(
+        self,
+        parent_checklist: CardChecklist,
+        item_id: str,
+        title: str,
+        is_finished: bool,
+    ) -> None:
+        """Reference to a Wekan CardChecklistItem"""
         super().__init__()
         self.checklist = parent_checklist
         self.id = item_id
         self.title = title
         self.is_finished = is_finished
 
-        uri = f'/api/boards/{self.checklist.card.list.board.id}/cards/{self.checklist.card.id}/' \
-              f'checklists/{self.checklist.id}/items/{self.id}'
+        uri = (
+            f"/api/boards/{self.checklist.card.list.board.id}/"
+            f"cards/{self.checklist.card.id}/"
+            f"checklists/{self.checklist.id}/"
+            f"items/{self.id}"
+        )
         data = self.checklist.card.list.board.client.fetch_json(uri)
-        self.sort = data['sort']
+        self.sort = data["sort"]
 
     def __repr__(self) -> str:
-        return f"<CardChecklistItem (id: {self.id}, title: {self.title}, is_finished: {self.is_finished})>"
+        return (
+            f"<CardChecklistItem (id: {self.id}, "
+            f"title: {self.title}, "
+            f"is_finished: {self.is_finished})>"
+        )
 
     @classmethod
     def from_dict(cls, parent_checklist: CardChecklist, data: dict) -> CardChecklistItem:
         """
         Creates an instance of class CardChecklist by using the API-Response of CardChecklist GET.
-        :param parent_checklist: Instance of Class CardChecklist pointing to the current Checklist of this ChecklistItem
+        :param parent_checklist: Instance of Class CardChecklist pointing to the current
+          Checklist of this ChecklistItem
         :param data: Response of CardChecklist GET.
         :return: Instance of class CardChecklistItem
         """
-        return cls(parent_checklist=parent_checklist, item_id=data['_id'],
-                   title=data['title'], is_finished=data['isFinished'])
+        return cls(
+            parent_checklist=parent_checklist,
+            item_id=data["_id"],
+            title=data["title"],
+            is_finished=data["isFinished"],
+        )
 
     @classmethod
     def from_list(cls, parent_checklist: CardChecklist, data: list) -> list[CardChecklistItem]:
         """
         Wrapper around function from_dict to process multiple objects within one function call.
-        :param parent_checklist: Instance of Class CardChecklist pointing to the current Checklist of this ChecklistItem
+        :param parent_checklist: Instance of Class CardChecklist pointing to the current
+          Checklist of this ChecklistItem
         :param data: Response of CardChecklist GET.
         :return: Instances of class CardChecklistItem
         """
         instances = []
         for item in data:
-            instances.append(cls(parent_checklist=parent_checklist, item_id=item['_id'],
-                                 title=item['title'], is_finished=item['isFinished']))
+            instances.append(
+                cls(
+                    parent_checklist=parent_checklist,
+                    item_id=item["_id"],
+                    title=item["title"],
+                    is_finished=item["isFinished"],
+                )
+            )
         return instances
 
     def edit(self, is_finished=None, title=None) -> None:
@@ -62,8 +90,12 @@ class CardChecklistItem(WekanBase):
         if title:
             payload["title"] = title
 
-        uri = f'/api/boards/{self.checklist.card.list.board.id}/cards/{self.checklist.card.id}/' \
-              f'checklists/{self.checklist.id}/items/{self.id}'
+        uri = (
+            f"/api/boards/{self.checklist.card.list.board.id}/"
+            f"cards/{self.checklist.card.id}/"
+            f"checklists/{self.checklist.id}/"
+            f"items/{self.id}"
+        )
         self.checklist.card.list.board.client.fetch_json(uri, payload=payload, http_method="PUT")
 
     def mark_as_finished(self) -> None:
@@ -83,9 +115,14 @@ class CardChecklistItem(WekanBase):
 
     def delete(self) -> None:
         """
-        Delete the Card Checklist instance according to https://wekan.github.io/api/v7.42/#delete_checklist_item
+        Delete the Card Checklist instance according to
+        https://wekan.github.io/api/v7.42/#delete_checklist_item
         :return: None
         """
-        uri = f'/api/boards/{self.checklist.card.board.id}/cards/{self.checklist.card.id}/' \
-              f'checklists/{self.checklist.id}/items/{self.id}'
+        uri = (
+            f"/api/boards/{self.checklist.card.board.id}/"
+            f"cards/{self.checklist.card.id}/"
+            f"checklists/{self.checklist.id}/"
+            f"items/{self.id}"
+        )
         self.checklist.card.board.client.fetch_json(uri, http_method="DELETE")
