@@ -1,25 +1,28 @@
 from __future__ import annotations
+
 import typing
+
 if typing.TYPE_CHECKING:
-	from wekan.board import Board
+    from wekan.board import Board
 
 from wekan.base import WekanBase
 
+
 class Swimlane(WekanBase):
     def __init__(self, parent_board: Board, swimlane_id: str) -> None:
-        """ Reference to a Wekan Swimlane """
+        """Reference to a Wekan Swimlane"""
         super().__init__()
         self.board = parent_board
         self.id = swimlane_id
 
-        data = self.board.client.fetch_json(f'/api/boards/{self.board.id}/swimlanes/{self.id}')
-        self.title = data['title']
-        self.archived = data['archived']
-        self.created_at = self.board.client.parse_iso_date(data['createdAt'])
-        self.updated_at = self.board.client.parse_iso_date(data.get('updatedAt', data['createdAt']))
-        self.sort = data.get('sort')
-        self.color = data.get('color', '')
-        self.type = data['type']
+        data = self.board.client.fetch_json(f"/api/boards/{self.board.id}/swimlanes/{self.id}")
+        self.title = data["title"]
+        self.archived = data["archived"]
+        self.created_at = self.board.client.parse_iso_date(data["createdAt"])
+        self.updated_at = self.board.client.parse_iso_date(data.get("updatedAt", data["createdAt"]))
+        self.sort = data.get("sort")
+        self.color = data.get("color", "")
+        self.type = data["type"]
 
     def __repr__(self) -> str:
         return f"<Swimlane (id: {self.id}, title: {self.title})>"
@@ -32,7 +35,7 @@ class Swimlane(WekanBase):
         :param data: Response of Swimlane GET.
         :return: Instance of class Swimlane
         """
-        return cls(parent_board=parent_board, swimlane_id=data['_id'])
+        return cls(parent_board=parent_board, swimlane_id=data["_id"])
 
     @classmethod
     def from_list(cls, parent_board: Board, data: list) -> list[Swimlane]:
@@ -44,7 +47,7 @@ class Swimlane(WekanBase):
         """
         instances = []
         for swimlane in data:
-            instances.append(cls(parent_board=parent_board, swimlane_id=swimlane['_id']))
+            instances.append(cls(parent_board=parent_board, swimlane_id=swimlane["_id"]))
         return instances
 
     def delete(self) -> None:
@@ -52,4 +55,6 @@ class Swimlane(WekanBase):
         Delete the Swimlane instance according to https://wekan.github.io/api/v7.42/#get_swimlane
         :return: None
         """
-        self.board.client.fetch_json(f'/api/boards/{self.board.id}/swimlanes/{self.id}', http_method="DELETE")
+        self.board.client.fetch_json(
+            f"/api/boards/{self.board.id}/swimlanes/{self.id}", http_method="DELETE"
+        )

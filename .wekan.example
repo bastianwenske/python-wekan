@@ -1,0 +1,4 @@
+WEKAN_BASE_URL=https://your-wekan-server.com
+WEKAN_USERNAME=your-username
+WEKAN_PASSWORD=your-password
+WEKAN_TIMEOUT=30000

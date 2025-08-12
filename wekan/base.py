@@ -1,4 +1,4 @@
-class WekanBase(object):
+class WekanBase:
     def __init__(self) -> None:
         self.id = None
 
