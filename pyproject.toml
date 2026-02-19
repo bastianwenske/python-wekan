@@ -1,6 +1,6 @@
 [project]
     name = 'python-wekan'
-    version = "0.3.1"
+    version = "0.3.2"
     description = "This is a python client for interacting with the WeKan® REST-API"
     readme = "README.md"
     license = { text = "BSD 3-Clause License" }
