@@ -32,7 +32,6 @@ class WekanCard(WekanBase):
         self.created_at = self.list.board.client.parse_iso_date(data['createdAt'])
         self.modified_at = self.list.board.client.parse_iso_date(data['modifiedAt'])
         self.date_last_activity = self.list.board.client.parse_iso_date(data['dateLastActivity'])
-        self.description = data['description']
         self.requested_by = data['requestedBy']
         self.assigned_by = data['assignedBy']
         self.assignees = data['assignees']
@@ -41,6 +40,10 @@ class WekanCard(WekanBase):
         self.subtask_sort = data['subtaskSort']
         self.linked_id = data['linkedId']
         # Following things are not always defined if card was created on a very old version of WeKan
+        try:
+            self.description = data['description']
+        except KeyError:
+            self.description = None
         try:
             self.cover_id = data['coverId']
         except KeyError:
