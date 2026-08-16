@@ -25,6 +25,11 @@
     ]
 
 [project.optional-dependencies]
+    cli = [
+        "typer>=0.9.0",
+        "rich>=10.0.0",
+        "pydantic>=2.0",
+    ]
     dev = [
         "coverage[toml]>=7.5.1",
         "faker>=25.2.0",
@@ -43,6 +48,9 @@
 [project.urls]
     homepage = 'https://github.com/bastianwenske/python-wekan'
 
+[project.scripts]
+    wekan = "wekan.cli.main:main"
+
 [build-system]
     requires = ["setuptools>=77.0.0", "setuptools_scm"]
     build-backend = "setuptools.build_meta"
@@ -51,6 +59,15 @@
     packages = [
         "tests",
         "wekan",
+        "wekan.cli",
+        "wekan.cli.commands",
+    ]
+
+[tool.pytest.ini_options]
+    markers = [
+        "cli: CLI related tests",
+        "unit: unit tests",
+        "integration: integration tests",
     ]
 
 [tool.pyright]
