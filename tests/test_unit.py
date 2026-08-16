@@ -1,6 +1,10 @@
+import json
 import unittest
 from unittest.mock import MagicMock, patch
-from wekan.wekan_client import WekanClient
+
+import requests
+
+from wekan.wekan_client import WekanAPIError, WekanClient, WekanConnectionError
 from wekan.board import Board
 from wekan.wekan_list import WekanList
 from wekan.card import WekanCard
@@ -146,6 +150,49 @@ class TestListAndCardUnit(unittest.TestCase):
         card = self.list.create_card(title="New Card", description="desc")
         self.assertIsInstance(card, WekanCard)
         self.assertEqual(card.title, "New Card")
+
+
+class TestFetchJsonErrorHandling(unittest.TestCase):
+    @staticmethod
+    def _make_client() -> WekanClient:
+        # Bypass __init__ to avoid the login request.
+        client = WekanClient.__new__(WekanClient)
+        client.base_url = 'http://localhost'
+        client.timeout = 5
+        return client
+
+    @patch('wekan.wekan_client.requests.request')
+    def test_connection_error_raises_wekan_connection_error(self, mock_request):
+        mock_request.side_effect = requests.exceptions.ConnectionError('connection refused')
+        with self.assertRaises(WekanConnectionError):
+            self._make_client().fetch_json('/api/boards')
+
+    @patch('wekan.wekan_client.requests.request')
+    def test_timeout_raises_wekan_connection_error(self, mock_request):
+        mock_request.side_effect = requests.exceptions.ConnectTimeout('timed out')
+        with self.assertRaises(WekanConnectionError):
+            self._make_client().fetch_json('/api/boards')
+
+    @patch('wekan.wekan_client.requests.request')
+    def test_http_error_with_html_body_raises_wekan_api_error(self, mock_request):
+        response = MagicMock()
+        response.status_code = 502
+        response.text = '<html><body><h1>502 Bad Gateway</h1></body></html>'
+        response.raise_for_status.side_effect = requests.exceptions.HTTPError(response=response)
+        response.json.side_effect = json.JSONDecodeError('Expecting value', '', 0)
+        mock_request.return_value = response
+        with self.assertRaises(WekanAPIError) as ctx:
+            self._make_client().fetch_json('/api/boards')
+        self.assertEqual(ctx.exception.status_code, 502)
+
+    @patch('wekan.wekan_client.requests.request')
+    def test_request_passes_timeout(self, mock_request):
+        response = MagicMock()
+        response.status_code = 200
+        response.json.return_value = {}
+        mock_request.return_value = response
+        self._make_client().fetch_json('/api/boards')
+        self.assertEqual(mock_request.call_args.kwargs['timeout'], 5)
 
 
 if __name__ == '__main__':
