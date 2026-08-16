@@ -57,6 +57,7 @@ class Board(WekanBase):
         self.allows_start_date = self.__raw_data['allowsStartDate']
         self.allows_end_date = self.__raw_data['allowsEndDate']
         self.allows_due_date = self.__raw_data['allowsDueDate']
+        self.description = self.__raw_data.get('description', None)
         self.present_parent_task = self.__raw_data.get('presentParentTask', None)
         self.is_overtime = self.__raw_data.get('isOvertime', None)
         self.type = self.__raw_data['type']

@@ -80,10 +80,13 @@ def load_config(config_file: Optional[Path] = None) -> WekanConfig:
 
 
 def save_config(config: WekanConfig, config_file: Optional[Path] = None) -> None:
-    """Save WeKan configuration to file."""
+    """Save WeKan configuration to file (readable only by the current user)."""
     if config_file is None:
         config_file = Path(".wekan")
 
+    # The file may contain credentials - restrict access to the current user.
+    config_file.touch(mode=0o600, exist_ok=True)
+    os.chmod(config_file, 0o600)
     with open(config_file, "w") as f:
         f.write(f"WEKAN_BASE_URL={config.base_url}\n")
         if config.username:

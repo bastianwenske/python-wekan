@@ -128,3 +128,6 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+
+# WeKan CLI configuration (may contain credentials)
+.wekan

@@ -614,8 +614,11 @@ class NavigationContext:
             return
 
         card_title = " ".join(args)
-        self.console.print(f"[yellow]Card creation coming soon: '{card_title}'[/yellow]")
-        # TODO: Implement actual card creation when API is available
+        try:
+            self.list_obj.create_card(title=card_title)
+            self.console.print(f"[green]Created card '[bold]{card_title}[/bold]'[/green]")
+        except Exception as e:
+            self.console.print(f"[red]Error creating card: {str(e)}[/red]")
 
     def handle_mv(self, args: list[str]) -> None:
         """Handle mv command - move card to another list."""
@@ -730,12 +733,11 @@ class NavigationContext:
             f"[red]Delete card '{self.card.title}'? This cannot be undone![/red]"
         ):
             try:
-                # TODO: Implement actual card deletion when API is available
-                self.console.print("[yellow]Card deletion API coming soon[/yellow]")
-                if self.card:
-                    self.console.print(f"[yellow]Would delete: '{self.card.title}'[/yellow]")
+                card_title = self.card.title
+                self.card.delete()
+                self.console.print(f"[green]Deleted card '[bold]{card_title}[/bold]'[/green]")
 
-                # For now, just navigate back to list level
+                # Navigate back to list level
                 self.card = None
                 self.level = ContextLevel.LIST
                 self.console.print("[blue]Returned to list level[/blue]")
@@ -833,7 +835,7 @@ class NavigationContext:
         """Edit card dates and times."""
         self.console.print("\n[bold]Editing Dates & Times[/bold]")
         self.console.print(
-            "[dim]Format: YYYY-MM-DD HH:MM or YYYY-MM-DD (leave empty to clear)[/dim]"
+            "[dim]Format: YYYY-MM-DD HH:MM or YYYY-MM-DD (leave empty to keep current)[/dim]"
         )
 
         # Get current dates
@@ -866,14 +868,10 @@ class NavigationContext:
                     from dateutil import parser
 
                     new_date = parser.parse(new_date_str)
-                    changes[field] = new_date.isoformat() if new_date else None
+                    changes[field] = new_date
                     self.console.print(f"[green]✓ {label} will be set to: {new_date}[/green]")
                 except Exception as e:
                     self.console.print(f"[red]Invalid date format: {str(e)}[/red]")
-            elif new_date_str == "":
-                # User wants to clear the date
-                changes[field] = None
-                self.console.print(f"[yellow]✓ {label} will be cleared[/yellow]")
 
         # Apply changes
         if changes and self.card:
@@ -900,11 +898,13 @@ class NavigationContext:
             )
 
             if board_members:
+                # get_members() returns raw membership records (userId, isAdmin, ...),
+                # usernames are not part of that response.
                 self.console.print("\nAvailable board members:")
                 for i, member in enumerate(board_members, 1):
-                    username = member.get("username", "Unknown")
-                    fullname = member.get("profile", {}).get("fullname", "")
-                    self.console.print(f"  {i}. {username} ({fullname})")
+                    user_id = member.get("userId", "Unknown")
+                    role = "admin" if member.get("isAdmin") else "member"
+                    self.console.print(f"  {i}. {user_id} ({role})")
 
             # Current assignments
             current_members = getattr(self.card, "members", [])
@@ -1058,10 +1058,11 @@ class NavigationContext:
             )
 
             if comments:
+                # get_comments() returns the raw API response (list of dicts)
                 for i, comment in enumerate(comments, 1):
-                    author = getattr(comment, "author", "Unknown")
-                    text = getattr(comment, "text", "")
-                    created = getattr(comment, "created_at", "Unknown time")
+                    author = comment.get("authorId", "Unknown")
+                    text = comment.get("comment", "")
+                    created = comment.get("createdAt", "Unknown time")
                     self.console.print(f"\n{i}. [bold]{author}[/bold] ({created})")
                     self.console.print(f"   {text}")
             else:
@@ -1069,12 +1070,10 @@ class NavigationContext:
 
             # Option to add new comment
             new_comment = input("\nAdd new comment (Enter to skip): ").strip()
-            if new_comment:
+            if new_comment and self.card:
                 try:
-                    # Note: This would need the actual comment creation API
-                    self.console.print(
-                        "[yellow]Comment creation API integration coming soon[/yellow]"
-                    )
+                    self.card.add_comment(new_comment)
+                    self.console.print("[green]Comment added successfully![/green]")
                 except Exception as e:
                     self.console.print(f"[red]Failed to add comment: {str(e)}[/red]")
 
@@ -1095,7 +1094,7 @@ class NavigationContext:
             if checklists:
                 for i, checklist in enumerate(checklists, 1):
                     title = getattr(checklist, "title", "Untitled")
-                    items = getattr(checklist, "items", [])
+                    items = checklist.list_checklists()
                     self.console.print(f"\n{i}. [bold]{title}[/bold] ({len(items)} items)")
 
                     for j, item in enumerate(items, 1):

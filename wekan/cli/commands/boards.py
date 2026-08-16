@@ -235,6 +235,8 @@ def create(
             is_no_comments=is_no_comments,
             is_comment_only=is_comment_only,
         )
+        if description:
+            board.update(description=description)
 
         console.print(
             Panel.fit(

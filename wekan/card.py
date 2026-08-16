@@ -75,6 +75,31 @@ class WekanCard(WekanBase):
                 self.due_at = None
         except KeyError:
             self.due_at = None
+        try:
+            if data['receivedAt']:
+                self.received_at = self.list.board.client.parse_iso_date(data['receivedAt'])
+            else:
+                self.received_at = None
+        except KeyError:
+            self.received_at = None
+        try:
+            if data['startAt']:
+                self.start_at = self.list.board.client.parse_iso_date(data['startAt'])
+            else:
+                self.start_at = None
+        except KeyError:
+            self.start_at = None
+        try:
+            if data['endAt']:
+                self.end_at = self.list.board.client.parse_iso_date(data['endAt'])
+            else:
+                self.end_at = None
+        except KeyError:
+            self.end_at = None
+        try:
+            self.color = data['color']
+        except KeyError:
+            self.color = None
 
     def __repr__(self) -> str:
         return f"<WekanCard (id: {self.id}, title: {self.title})>"
@@ -247,9 +272,9 @@ class WekanCard(WekanBase):
             assert isinstance(end_at, date)
             payload['endAt'] = end_at.isoformat()
         if spent_time:
-            assert isinstance(spent_time, int)
+            assert isinstance(spent_time, (int, float))
             payload['spentTime'] = spent_time
-        if is_overtime:
+        if is_overtime is not None:
             assert isinstance(is_overtime, bool)
             payload['isOverTime'] = is_overtime
         if custom_fields:
