@@ -3,7 +3,7 @@
     version = "0.3.2"
     description = "This is a python client for interacting with the WeKan® REST-API"
     readme = "README.md"
-    license = { text = "BSD 3-Clause License" }
+    license = "BSD-3-Clause"
     # Change the version for the tools below too when bumping up
     requires-python = ">=3.9"
     classifiers = [
