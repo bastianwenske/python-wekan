@@ -14,7 +14,11 @@ The project assumes that you are using a [currently-supported](https://devguide.
 
 ### Via pip
 ```bash
+# Install library only
 pip install python-wekan
+
+# Install with CLI support
+pip install python-wekan[cli]
 ```
 
 ## How to use
@@ -150,12 +154,115 @@ board = wekan.list_boards(regex_filter='My new Board')[0]
 board.add_swimlane(title="My first swimlane")
 ```
 
-## Development
-### Generate requirements
+## Command Line Interface
+
+The python-wekan library includes an optional CLI for managing WeKan boards from the command line.
+
+### Installation
 ```bash
-pipenv requirements > requirements.txt
-pipenv requirements --dev-only > requirements_dev.txt
- ```
+pip install python-wekan[cli]
+```
+
+### Quick Start
+```bash
+# Initialize configuration
+wekan config init https://your-wekan-server.com username password
+
+# Check connection status
+wekan status
+
+# Start interactive navigation shell (recommended!)
+wekan navigate
+```
+
+### Interactive Navigation Shell
+The CLI features a **filesystem-like navigation** interface that lets you browse and manage your WeKan boards intuitively:
+
+```bash
+# Start the navigation shell
+wekan navigate
+
+# Navigate through your boards, lists, and cards like directories
+wekan> ls                    # List all boards
+wekan> cd "My Project"       # Enter a board
+wekan:/My Project> ls        # List board contents (lists, swimlanes)
+wekan:/My Project> cd Todo   # Enter a list
+wekan:/My Project/Todo> ls   # List cards in the list
+wekan:/My Project/Todo> cd 1 # Enter a card by index or ID
+wekan:/My Project/Todo/1> edit # Edit card properties
+
+# Navigation commands
+pwd                          # Show current path
+cd ..                        # Go up one level
+cd /                         # Go to root (all boards)
+history                      # Show command history
+help                         # Show available commands
+exit                         # Exit navigation shell
+```
+
+### Standard Commands
+Beyond the interactive shell, these commands are available:
+
+#### Board Management
+```bash
+# List boards
+wekan boards list
+
+# Show board details
+wekan boards show <board-id>
+
+# Create a new board
+wekan boards create "My Project Board" --description "Project management board"
+```
+
+#### Authentication & Configuration
+```bash
+# Authentication
+wekan auth login            # Login with credentials
+wekan auth whoami           # Show current user
+wekan auth logout           # Clear stored credentials
+
+# Configuration management
+wekan config init <url> <username> <password>  # Initialize configuration
+wekan config show                              # Show current configuration
+wekan config set <key> <value>                 # Set configuration value
+```
+
+#### Utility Commands
+```bash
+wekan status               # Show connection status and server info
+wekan version              # Show CLI version information
+```
+
+### Configuration
+The CLI supports multiple configuration methods:
+
+#### Configuration File (`.wekan`)
+The CLI automatically searches for a `.wekan` configuration file in:
+- Current directory
+- Home directory (`~/.wekan`)
+
+Example `.wekan` file (see `.wekan.example`):
+```bash
+WEKAN_BASE_URL=https://your-wekan-server.com
+WEKAN_USERNAME=your-username
+WEKAN_PASSWORD=your-password
+WEKAN_TIMEOUT=30000
+```
+
+#### Environment Variables
+```bash
+export WEKAN_BASE_URL=https://your-wekan-server.com
+export WEKAN_USERNAME=your-username
+export WEKAN_PASSWORD=your-password
+```
+Environment variables take precedence over the configuration file.
+
+## Development
+### Install development dependencies
+```bash
+pip install -e ".[dev,cli]"
+```
 
 ## credits
 This project is based on [py-trello](https://github.com/sarumont/py-trello).

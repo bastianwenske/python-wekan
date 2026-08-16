@@ -1,3 +1,6 @@
+from importlib.metadata import PackageNotFoundError
+from importlib.metadata import version as _version
+
 from wekan.board import Board
 from wekan.card import WekanCard
 from wekan.card_checklist import CardChecklist
@@ -17,6 +20,11 @@ from wekan.wekan_client import (
     WekanNotFoundError,
 )
 from wekan.wekan_list import WekanList
+
+try:
+    __version__ = _version("python-wekan")
+except PackageNotFoundError:
+    __version__ = "unknown"
 
 __all__ = [
     "Board",
