@@ -22,15 +22,19 @@ class WekanNotFoundError(WekanAPIError):
 class WekanAuthenticationError(WekanAPIError):
     """Authentication failed (401)."""
 
+class WekanConnectionError(WekanAPIError):
+    """Could not reach the Wekan server (connection failure or timeout)."""
+
 class UsernameAlreadyExists(WekanAPIError):
     pass
 
 
 class WekanClient(object):
-    def __init__(self, base_url: str, username: str, password: str) -> None:
+    def __init__(self, base_url: str, username: str, password: str, timeout: float = 30) -> None:
         self.base_url = base_url
         self.username = username
         self.password = password
+        self.timeout = timeout
         self.__renew_login_data()
 
     def __renew_login_data(self):
@@ -149,7 +153,13 @@ class WekanClient(object):
             # pass if the variable self.token_expire_date isn't defined
             pass
 
-        response = requests.request(method=http_method, url=url, headers=headers, data=json.dumps(payload))
+        try:
+            response = requests.request(method=http_method, url=url, headers=headers,
+                                        data=json.dumps(payload), timeout=self.timeout)
+        except requests.exceptions.Timeout as e:
+            raise WekanConnectionError(f'Request to the Wekan server timed out: {e}') from e
+        except requests.exceptions.ConnectionError as e:
+            raise WekanConnectionError(f'Could not connect to the Wekan server: {e}') from e
         try:
             response.raise_for_status()
         except requests.exceptions.HTTPError as e:

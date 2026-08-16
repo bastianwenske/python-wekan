@@ -13,6 +13,7 @@ from wekan.wekan_client import (
     WekanAPIError,
     WekanAuthenticationError,
     WekanClient,
+    WekanConnectionError,
     WekanNotFoundError,
 )
 from wekan.wekan_list import WekanList
@@ -31,6 +32,7 @@ __all__ = [
     "WekanAuthenticationError",
     "WekanCard",
     "WekanClient",
+    "WekanConnectionError",
     "WekanList",
     "WekanUser",
 ]
