@@ -1,12 +1,36 @@
-from wekan.board import *
-from wekan.card import *
-from wekan.card_checklist import *
-from wekan.card_checklist_item import *
-from wekan.card_comment import *
-from wekan.customfield import *
-from wekan.integration import *
-from wekan.label import *
-from wekan.swimlane import *
-from wekan.user import *
-from wekan.wekan_client import *
-from wekan.wekan_list import *
+from wekan.board import Board
+from wekan.card import WekanCard
+from wekan.card_checklist import CardChecklist
+from wekan.card_checklist_item import CardChecklistItem
+from wekan.card_comment import CardComment
+from wekan.customfield import Customfield
+from wekan.integration import Integration
+from wekan.label import Label
+from wekan.swimlane import Swimlane
+from wekan.user import WekanUser
+from wekan.wekan_client import (
+    UsernameAlreadyExists,
+    WekanAPIError,
+    WekanAuthenticationError,
+    WekanClient,
+    WekanNotFoundError,
+)
+from wekan.wekan_list import WekanList
+
+__all__ = [
+    "Board",
+    "CardChecklist",
+    "CardChecklistItem",
+    "CardComment",
+    "Customfield",
+    "Integration",
+    "Label",
+    "Swimlane",
+    "UsernameAlreadyExists",
+    "WekanAPIError",
+    "WekanAuthenticationError",
+    "WekanCard",
+    "WekanClient",
+    "WekanList",
+    "WekanUser",
+]
